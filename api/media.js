@@ -18,26 +18,18 @@ module.exports = async (req, res) => {
     return;
   }
 
-  console.log("Sending test response");
-  // Return a test response first to check if the API is working
-  return res.status(200).json([
-    {
-      Filename: "test.jpg",
-      Author: "Test Author",
-      MediaType: "image",
-      filter_day: "Monday",
-    },
-  ]);
-
-  /* Commenting out CSV reading for now
   try {
     // Read the CSV file as text
     const mediaDataPath = path.join(process.cwd(), "media_data.csv");
-    const fileContent = await fs.readFile(mediaDataPath, "utf-8");
+    console.log("Reading CSV from:", mediaDataPath);
 
-    // Parse CSV manually (since we can't use streams in serverless)
+    const fileContent = await fs.readFile(mediaDataPath, "utf-8");
+    console.log("CSV file read successfully");
+
+    // Parse CSV manually
     const lines = fileContent.split("\n");
     const headers = lines[0].split(",").map((h) => h.trim());
+    console.log("CSV Headers:", headers);
 
     const mediaData = lines
       .slice(1)
@@ -50,13 +42,15 @@ module.exports = async (req, res) => {
         }, {});
       });
 
+    console.log(`Parsed ${mediaData.length} items from CSV`);
     // Send the response
     res.status(200).json(mediaData);
   } catch (error) {
     console.error("Error reading CSV file:", error);
-    res
-      .status(500)
-      .json({ error: "Failed to load media data", details: error.message });
+    res.status(500).json({
+      error: "Failed to load media data",
+      details: error.message,
+      path: path.join(process.cwd(), "media_data.csv"),
+    });
   }
-  */
 };
