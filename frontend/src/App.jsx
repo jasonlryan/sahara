@@ -94,7 +94,7 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
   }, [currentIndex, filteredItems]);
 
   const sourceFilename = getBaseFilename(item.Filename);
-  const originalUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
+  const originalUrl = getGitHubRawUrl(item.URL);
 
   // Determine content based on media type
   let mediaContent;
@@ -106,29 +106,29 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
                     src={originalUrl} 
                     alt={sourceFilename} 
                     style={{ maxWidth: '100%', height: 'auto' }}
-                    draggable="false" // Prevent image dragging on mobile
+                    draggable="false"
                   />
               </div>
           </div>
       );
   } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
       const baseFilename = getBaseFilename(item.Filename);
-      // Use relative path for videos
-      const video480pUrl = `/web_media/videos_480p/${baseFilename}`;
+      const videoUrl = `/web_media/videos_480p/${baseFilename}`;
+      const thumbnailUrl = `/web_media/video_thumbnails/${baseFilename.replace('.mp4', '.jpg')}`;
       mediaContent = (
           <div className="modal-video-viewer">
               <video 
                   controls 
                   preload="metadata" 
-                  poster={item.URL.replace('/sahara/media/', '/sahara/main/media/')}
+                  poster={thumbnailUrl}
                   style={{ maxWidth: '100%', maxHeight: '60vh' }}
                   playsInline
                   webkit-playsinline="true"
                   onError={(e) => {
-                      console.error('Video failed to load:', video480pUrl);
+                      console.error('Video failed to load:', videoUrl);
                   }}
               >
-                  <source src={video480pUrl} type="video/mp4" />
+                  <source src={videoUrl} type="video/mp4" />
                   Your browser does not support the video tag.
               </video>
           </div>
@@ -223,6 +223,11 @@ const formatDateToYYYYMMDD = (date) => {
   const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); // +1 because months are 0-indexed, padStart for leading zero
   const day = date.getUTCDate().toString().padStart(2, '0');
   return `${year}-${month}-${day}`;
+};
+
+// Helper function to get correct GitHub raw URL
+const getGitHubRawUrl = (url) => {
+  return url.replace('/sahara/media/', '/sahara/main/media/');
 };
 
 function App() {
@@ -418,14 +423,23 @@ function App() {
             <div className="thumbnail-grid">
               {items.map((item, index) => {
                 const sourceFilename = getBaseFilename(item.Filename);
-                let thumbnailUrl = '';
                 
                 if (item.MediaType && item.MediaType.toLowerCase() === 'image') {
-                    thumbnailUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
+                    const thumbnailUrl = getGitHubRawUrl(item.URL);
+                    return (
+                      <div
+                        key={item.Filename || index}
+                        className="thumbnail-item"
+                        onClick={() => setSelectedItem(item)}
+                        title={`Filename: ${sourceFilename}\nAuthor: ${item.Author || 'Unknown'}\nDay: ${item.filter_day || 'N/A'}`}
+                      >
+                        <img src={thumbnailUrl} alt={sourceFilename} loading="lazy" />
+                      </div>
+                    );
                 } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
                     const baseFilename = getBaseFilename(item.Filename);
-                    // Use relative path for videos
-                    const video480pUrl = `/web_media/videos_480p/${baseFilename}`;
+                    const videoUrl = `/web_media/videos_480p/${baseFilename}`;
+                    const thumbnailUrl = `/web_media/video_thumbnails/${baseFilename.replace('.mp4', '.jpg')}`;
                     return (
                       <div
                         key={item.Filename || index}
@@ -435,11 +449,10 @@ function App() {
                       >
                         <div className="video-thumbnail">
                           <img 
-                            src={item.URL.replace('/sahara/media/', '/sahara/main/media/')} 
+                            src={thumbnailUrl} 
                             alt={sourceFilename} 
                             loading="lazy"
                             onError={(e) => {
-                              // If thumbnail fails, show a play button on a dark background
                               e.target.style.display = 'none';
                               e.target.parentElement.style.backgroundColor = '#000';
                             }}
@@ -454,19 +467,6 @@ function App() {
                     // Placeholder for unknown type
                     return <div key={index} className="thumbnail-item error-thumb">?</div>;
                 }
-
-                const tooltipText = `Filename: ${sourceFilename}\nAuthor: ${item.Author || 'Unknown'}\nDay: ${item.filter_day || 'N/A'}`;
-
-                return (
-                  <div
-                    key={item.Filename || index}
-                    className="thumbnail-item"
-                    onClick={() => setSelectedItem(item)}
-                    title={tooltipText}
-                  >
-                    <img src={thumbnailUrl} alt={sourceFilename} loading="lazy" />
-                  </div>
-                );
               })}
             </div>
           </div>
