@@ -145,6 +145,7 @@ def sync_and_update_csv():
                 errors += 1
                 continue
 
+        # --- Construct GitHub Media URL ---
         github_media_url = ''
         try:
             dir_part, file_part = os.path.split(relative_path)
@@ -154,6 +155,9 @@ def sync_and_update_csv():
         except Exception as url_e:
             print(f"  [Warning] Failed to generate GitHub URL for {relative_path}: {url_e}", file=sys.stderr)
 
+        # --- Construct Local Media URL ---
+        local_media_url = f"http://localhost:3000/{relative_path}"
+
         new_rows.append({
             'URL': github_media_url,
             'Author': author,
@@ -161,7 +165,7 @@ def sync_and_update_csv():
             'DateTime': datetime_str,
             'full_size': dimensions,
             'MediaType': media_type,
-            'mediaUrl': github_media_url
+            'mediaUrl': local_media_url
         })
         files_added += 1
         print(f"  - Added: Type='{media_type}', Author='{author}', DateTime='{datetime_str}', Size='{dimensions or 'N/A'}'")
