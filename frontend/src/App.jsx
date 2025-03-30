@@ -112,19 +112,21 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
           </div>
       );
   } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
-      const thumbnailUrl = item.Thumbnail 
-          ? item.Thumbnail.replace('/sahara/media/', '/sahara/main/media/')
-          : item.URL.replace('/sahara/media/', '/sahara/main/media/').replace(/\.mp4$/, '_thumb.jpg');
-      const video480pUrl = `/web_media/videos_480p/${getBaseFilename(item.Filename)}`;
+      const baseFilename = getBaseFilename(item.Filename);
+      // Use relative path for videos
+      const video480pUrl = `/web_media/videos_480p/${baseFilename}`;
       mediaContent = (
           <div className="modal-video-viewer">
               <video 
                   controls 
                   preload="metadata" 
-                  poster={thumbnailUrl} 
+                  poster={item.URL.replace('/sahara/media/', '/sahara/main/media/')}
                   style={{ maxWidth: '100%', maxHeight: '60vh' }}
                   playsInline
                   webkit-playsinline="true"
+                  onError={(e) => {
+                      console.error('Video failed to load:', video480pUrl);
+                  }}
               >
                   <source src={video480pUrl} type="video/mp4" />
                   Your browser does not support the video tag.
@@ -421,10 +423,9 @@ function App() {
                 if (item.MediaType && item.MediaType.toLowerCase() === 'image') {
                     thumbnailUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
                 } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
-                    thumbnailUrl = item.Thumbnail 
-                        ? item.Thumbnail.replace('/sahara/media/', '/sahara/main/media/')
-                        : item.URL.replace('/sahara/media/', '/sahara/main/media/').replace(/\.mp4$/, '_thumb.jpg');
-                    const video480pUrl = `/web_media/videos_480p/${getBaseFilename(item.Filename)}`;
+                    const baseFilename = getBaseFilename(item.Filename);
+                    // Use relative path for videos
+                    const video480pUrl = `/web_media/videos_480p/${baseFilename}`;
                     return (
                       <div
                         key={item.Filename || index}
@@ -434,9 +435,14 @@ function App() {
                       >
                         <div className="video-thumbnail">
                           <img 
-                            src={thumbnailUrl} 
+                            src={item.URL.replace('/sahara/media/', '/sahara/main/media/')} 
                             alt={sourceFilename} 
                             loading="lazy"
+                            onError={(e) => {
+                              // If thumbnail fails, show a play button on a dark background
+                              e.target.style.display = 'none';
+                              e.target.parentElement.style.backgroundColor = '#000';
+                            }}
                           />
                           <div className="video-play-overlay">
                             <span>▶️</span>
