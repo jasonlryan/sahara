@@ -323,11 +323,13 @@ function App() {
                         title={`Filename: ${sourceFilename}\nAuthor: ${item.Author || 'Unknown'}\nDay: ${item.filter_day || 'N/A'}`}
                       >
                         <video 
-                            controls 
+                            controls
                             preload="none"
                             poster={thumbnailUrl}
                             onClick={(e) => e.stopPropagation()}
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            playsInline
+                            webkit-playsinline="true"
                         >
                             <source src={video480pUrl} type="video/mp4" />
                             Your browser does not support the video tag.

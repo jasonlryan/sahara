@@ -208,13 +208,28 @@ h1 {
   height: auto;
 }
 
-.thumbnail-item video::-webkit-media-controls {
-  opacity: 0;
-  transition: opacity 0.2s;
+/* Make video controls always visible on mobile */
+@media (hover: none) and (pointer: coarse) {
+  .thumbnail-item video::-webkit-media-controls {
+    opacity: 1 !important;
+  }
+  
+  /* Increase tap target size for video controls */
+  .thumbnail-item video::-webkit-media-controls-panel {
+    min-height: 40px;
+  }
 }
 
-.thumbnail-item video:hover::-webkit-media-controls {
-  opacity: 1;
+/* Hide controls by default on desktop */
+@media (hover: hover) {
+  .thumbnail-item video::-webkit-media-controls {
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .thumbnail-item video:hover::-webkit-media-controls {
+    opacity: 1;
+  }
 }
 
 .thumbnail-item.error-thumb {
