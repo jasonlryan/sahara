@@ -8,9 +8,8 @@ const BACKEND_URL = ''; // Empty string means use relative URLs
 const isVercel = window.location.hostname.includes('vercel.app');
 console.log("Environment detection:", { isVercel, hostname: window.location.hostname });
 
-// After we deploy web_media to Vercel, we should use the local paths in both environments
-// This is a temporary fallback in case the web_media directory is not available
-const useGitHubRawForThumbnails = isVercel; 
+// Use local thumbnails by default
+const useGitHubRawForThumbnails = false;
 
 // Simple Modal Component (Placeholder for now)
 function MediaModal({ item, onClose }) {
@@ -39,11 +38,17 @@ function MediaModal({ item, onClose }) {
       
       // Fallback option: GitHub raw URLs (if web_media is not deployed)
       if (useGitHubRawForThumbnails) {
-          thumbnailUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/').replace('.mp4', '.jpg');
           videoUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
+          thumbnailUrl = createThumbnailUrlFromVideo(videoUrl);
       }
       
       console.log("Media paths:", { thumbnailUrl, videoUrl, filename: sourceFilename, useGitHubRawForThumbnails });
+      
+      // Try to verify that the thumbnail URL is valid
+      const img = new Image();
+      img.src = thumbnailUrl;
+      img.onload = () => console.log(`Modal thumbnail loaded successfully: ${thumbnailUrl}`);
+      img.onerror = () => console.error(`Modal thumbnail failed to load: ${thumbnailUrl}`);
       
       mediaContent = (
           <div className="modal-video-viewer">
@@ -51,9 +56,10 @@ function MediaModal({ item, onClose }) {
                   controls 
                   preload="metadata" 
                   poster={thumbnailUrl} 
-                  style={{ maxWidth: '100%', maxHeight: '60vh' }}
+                  style={{ maxWidth: '100%', height: 'auto', objectFit: 'contain' }}
                   playsInline
                   webkit-playsinline="true"
+                  onError={() => console.error(`Modal video error: ${videoUrl}`)}
               >
                   <source src={videoUrl} type="video/mp4" />
                   Your browser does not support the video tag.
@@ -92,6 +98,17 @@ const getThumbnailFilename = (fullPath) => {
   if (!base) return '';
   const nameWithoutExt = base.substring(0, base.lastIndexOf('.')) || base;
   return `${nameWithoutExt}.jpg`;
+};
+
+// Helper to create a thumbnail URL from the video URL
+const createThumbnailUrlFromVideo = (videoUrl) => {
+  if (!videoUrl) return '';
+  // For GitHub raw URLs (or any URLs ending in .mp4), replace .mp4 with .jpg
+  if (videoUrl.endsWith('.mp4')) {
+    return videoUrl.replace(/\.mp4$/, '.jpg');
+  }
+  // For other cases, just append .jpg (should not happen, but as fallback)
+  return `${videoUrl}.jpg`;
 };
 
 // Helper to parse YYYY:MM:DD HH:MM:SS to Date object
@@ -338,11 +355,17 @@ function App() {
                     
                     // Fallback option: GitHub raw URLs (if web_media is not deployed)
                     if (useGitHubRawForThumbnails) {
-                        thumbnailUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/').replace('.mp4', '.jpg');
                         videoUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
+                        thumbnailUrl = createThumbnailUrlFromVideo(videoUrl);
                     }
                     
                     console.log("Grid paths:", { thumbnailUrl, videoUrl, filename: sourceFilename, useGitHubRawForThumbnails });
+                    
+                    // Try to verify that the thumbnail URL is valid
+                    const img = new Image();
+                    img.src = thumbnailUrl;
+                    img.onload = () => console.log(`Thumbnail loaded successfully: ${thumbnailUrl}`);
+                    img.onerror = () => console.error(`Thumbnail failed to load: ${thumbnailUrl}`);
                     
                     return (
                       <div
@@ -355,9 +378,10 @@ function App() {
                             preload="none"
                             poster={thumbnailUrl}
                             onClick={(e) => e.stopPropagation()}
-                            style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover' }}
+                            style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
                             playsInline
                             webkit-playsinline="true"
+                            onError={() => console.error(`Video error: ${videoUrl}`)}
                         >
                             <source src={videoUrl} type="video/mp4" />
                             Your browser does not support the video tag.
