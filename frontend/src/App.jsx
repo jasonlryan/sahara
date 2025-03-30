@@ -56,7 +56,6 @@ function MediaModal({ item, onClose }) {
                   controls 
                   preload="metadata" 
                   poster={thumbnailUrl} 
-                  style={{ maxWidth: '100%', height: 'auto', objectFit: 'contain' }}
                   playsInline
                   webkit-playsinline="true"
                   onError={() => console.error(`Modal video error: ${videoUrl}`)}
@@ -378,7 +377,6 @@ function App() {
                             preload="none"
                             poster={thumbnailUrl}
                             onClick={(e) => e.stopPropagation()}
-                            style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
                             playsInline
                             webkit-playsinline="true"
                             onError={() => console.error(`Video error: ${videoUrl}`)}
