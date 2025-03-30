@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import './App.css'; // We'll add styles here
 
 // Define the base URL for the backend API and static assets
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || window.location.origin;
 
 // Simple Modal Component (Placeholder for now)
 function MediaModal({ item, onClose }) {
