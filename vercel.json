@@ -10,14 +10,14 @@
             "use": "@vercel/static"
         }
     ],
-    "routes": [
+    "rewrites": [
         {
-            "src": "/media/(.*)",
-            "dest": "/media/$1"
+            "source": "/media/:path*",
+            "destination": "/media/:path*"
         },
         {
-            "src": "/(.*)",
-            "dest": "/frontend/$1"
+            "source": "/:path*",
+            "destination": "/frontend/:path*"
         }
     ],
     "headers": [
