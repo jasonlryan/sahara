@@ -437,51 +437,48 @@ h1 {
 }
 
 /* Modal Navigation Styles */
-.modal-navigation {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
+.modal-navigation-container {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  justify-content: space-between;
-  padding: 0 20px;
-  pointer-events: none; /* This ensures clicks pass through to the modal overlay */
-  z-index: 1000;
+  gap: 20px;
+  z-index: 1001;
 }
 
 .nav-button {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   color: white;
   border: none;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  font-size: 24px;
+  width: 50px;
+  height: 50px;
+  font-size: 28px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s;
-  pointer-events: auto; /* Re-enable pointer events for the buttons */
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .nav-button:hover {
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
 }
 
-.nav-button.prev {
-  margin-right: auto;
-}
-
-.nav-button.next {
-  margin-left: auto;
+.nav-button:active {
+  transform: scale(0.95);
 }
 
 /* Ensure modal content is properly layered */
 .modal-content {
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* Changed from hidden to allow buttons to be visible */
   touch-action: pan-y pinch-zoom;
+  margin-bottom: 80px; /* Add space for the navigation buttons */
 }
 
 /* Make sure images and videos are centered */
@@ -492,4 +489,24 @@ h1 {
   align-items: center;
   width: 100%;
   height: 100%;
+  margin: 20px 0;
+}
+
+.modal-image-viewer img {
+  max-height: 80vh;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Add responsive styles for navigation */
+@media (max-width: 600px) {
+  .modal-navigation-container {
+    bottom: 10px;
+  }
+
+  .nav-button {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+  }
 }

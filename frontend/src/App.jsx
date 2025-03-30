@@ -5,7 +5,7 @@ import './App.css'; // We'll add styles here
 const BACKEND_URL = ''; // Empty string means use relative URLs
 
 // Simple Modal Component (Placeholder for now)
-function MediaModal({ item, onClose, filteredItems }) {
+function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
   if (!item) return null;
 
   // Find current item index and get next/previous items
@@ -14,19 +14,37 @@ function MediaModal({ item, onClose, filteredItems }) {
   const hasNext = currentIndex < filteredItems.length - 1;
 
   // Navigation functions
-  const showPrevious = () => {
+  const showPrevious = (e) => {
+    e.stopPropagation();
     if (hasPrevious) {
       const previousItem = filteredItems[currentIndex - 1];
       setSelectedItem(previousItem);
     }
   };
 
-  const showNext = () => {
+  const showNext = (e) => {
+    e.stopPropagation();
     if (hasNext) {
       const nextItem = filteredItems[currentIndex + 1];
       setSelectedItem(nextItem);
     }
   };
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.key === 'ArrowLeft' && hasPrevious) {
+        showPrevious(e);
+      } else if (e.key === 'ArrowRight' && hasNext) {
+        showNext(e);
+      } else if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [currentIndex, filteredItems]); // Add dependencies
 
   // Touch handling for swipe
   const [touchStart, setTouchStart] = useState(null);
@@ -51,10 +69,10 @@ function MediaModal({ item, onClose, filteredItems }) {
     const isRightSwipe = distance < -minSwipeDistance;
 
     if (isLeftSwipe && hasNext) {
-      showNext();
+      showNext(new Event('swipe'));
     }
     if (isRightSwipe && hasPrevious) {
-      showPrevious();
+      showPrevious(new Event('swipe'));
     }
   };
 
@@ -102,7 +120,7 @@ function MediaModal({ item, onClose, filteredItems }) {
     > 
       <div className="modal-content" onClick={e => e.stopPropagation()}> 
         <button className="modal-close" onClick={onClose}>X</button>
-        <div className="modal-navigation">
+        <div className="modal-navigation-container">
           {hasPrevious && (
             <button className="nav-button prev" onClick={showPrevious}>
               ←
@@ -425,6 +443,7 @@ function App() {
         item={selectedItem} 
         onClose={() => setSelectedItem(null)} 
         filteredItems={filteredItems}
+        setSelectedItem={setSelectedItem}
       />
       
     </div>
