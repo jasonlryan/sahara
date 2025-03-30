@@ -102,7 +102,8 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
           </div>
       );
   } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
-      const thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
+      const thumbnailUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/').replace(/\.[^.]+$/, '.jpg');
+      const video480pUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
       mediaContent = (
           <div className="modal-video-viewer">
               <video 
@@ -408,7 +409,7 @@ function App() {
                 if (item.MediaType && item.MediaType.toLowerCase() === 'image') {
                     thumbnailUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
                 } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
-                    thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
+                    thumbnailUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/').replace(/\.[^.]+$/, '.jpg');
                     const video480pUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
                     return (
                       <div
