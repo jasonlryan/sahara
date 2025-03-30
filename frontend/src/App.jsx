@@ -8,6 +8,16 @@ const BACKEND_URL = ''; // Empty string means use relative URLs
 function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
   if (!item) return null;
 
+  // Add useEffect to handle body scroll locking
+  useEffect(() => {
+    // Prevent scrolling on mount
+    document.body.style.overflow = 'hidden';
+    // Re-enable scrolling on cleanup
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []); // Empty dependency array means this runs once on mount and cleanup
+
   // Find current item index and get next/previous items
   const currentIndex = filteredItems.findIndex(i => i.Filename === item.Filename);
   const hasPrevious = currentIndex > 0;
