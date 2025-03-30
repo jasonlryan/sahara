@@ -114,7 +114,7 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
   } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
       const baseFilename = getBaseFilename(item.Filename);
       const videoUrl = `/web_media/videos_480p/${baseFilename}`;
-      const thumbnailUrl = `/web_media/video_thumbnails/${baseFilename.replace('.mp4', '.jpg')}`;
+      const thumbnailUrl = `/web_media/thumbnails/${baseFilename.replace('.mp4', '.jpg')}`;
       mediaContent = (
           <div className="modal-video-viewer">
               <video 
@@ -439,7 +439,7 @@ function App() {
                 } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
                     const baseFilename = getBaseFilename(item.Filename);
                     const videoUrl = `/web_media/videos_480p/${baseFilename}`;
-                    const thumbnailUrl = `/web_media/video_thumbnails/${baseFilename.replace('.mp4', '.jpg')}`;
+                    const thumbnailUrl = `/web_media/thumbnails/${baseFilename.replace('.mp4', '.jpg')}`;
                     return (
                       <div
                         key={item.Filename || index}
@@ -449,7 +449,7 @@ function App() {
                       >
                         <div className="video-thumbnail">
                           <img 
-                            src={thumbnailUrl} 
+                            src={thumbnailUrl}
                             alt={sourceFilename} 
                             loading="lazy"
                             onError={(e) => {
