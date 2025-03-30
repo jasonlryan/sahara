@@ -2,8 +2,11 @@
     "version": 2,
     "builds": [
         {
-            "src": "frontend/**",
-            "use": "@vercel/static"
+            "src": "frontend/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "frontend/dist"
+            }
         },
         {
             "src": "media/**",
@@ -16,8 +19,8 @@
             "destination": "/media/:path*"
         },
         {
-            "source": "/:path*",
-            "destination": "/frontend/:path*"
+            "source": "/(.*)",
+            "destination": "/frontend/dist/$1"
         }
     ],
     "headers": [
