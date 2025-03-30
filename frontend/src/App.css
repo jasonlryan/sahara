@@ -282,6 +282,7 @@ h1 {
   position: relative;
   color: #586e75; /* Default text color */
   border: 1px solid #eee8d5;
+  transition: transform 0.3s ease;
 }
 
 .modal-close {
@@ -465,4 +466,126 @@ h1 {
     object-fit: cover;
     -webkit-object-fit: cover;
   }
+}
+
+/* Modal swipe functionality styles */
+.modal-content {
+  /* ... existing code ... */
+  transition: transform 0.3s ease;
+}
+
+.modal-indicator {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  z-index: 1010;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.modal-indicator .current-position {
+  font-weight: bold;
+  font-size: 1.1em;
+  color: #ffffff;
+}
+
+.modal-indicator .total-count {
+  opacity: 0.8;
+}
+
+/* Only show the swipe feedback on mobile */
+@media (hover: hover) {
+  .modal-overlay.swipe-left::before,
+  .modal-overlay.swipe-right::before {
+    display: none;
+  }
+}
+
+/* Add swipe instruction for mobile */
+@media (max-width: 768px) {
+  .modal-overlay::after {
+    content: "Swipe to navigate";
+    position: fixed;
+    bottom: 60px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9em;
+    padding: 10px;
+    animation: fadeOut 3s forwards;
+    animation-delay: 2s;
+    pointer-events: none;
+  }
+
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  
+  /* Prevent vertical scroll while swiping */
+  .modal-content {
+    touch-action: pan-y;
+    height: auto;
+    max-height: 80vh;
+  }
+  
+  /* Make download link more tappable on mobile */
+  .download-link {
+    padding: 12px 20px;
+    margin-top: 15px;
+    display: block;
+    text-align: center;
+  }
+}
+
+/* Swipe animation */
+.swipe-left-enter {
+  transform: translateX(100%);
+}
+.swipe-left-enter-active {
+  transform: translateX(0);
+  transition: transform 300ms;
+}
+.swipe-right-enter {
+  transform: translateX(-100%);
+}
+.swipe-right-enter-active {
+  transform: translateX(0);
+  transition: transform 300ms;
+}
+
+/* Swipe state styling */
+.modal-overlay.swiping {
+  cursor: grabbing;
+}
+
+.modal-overlay.swipe-left::before,
+.modal-overlay.swipe-right::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 40px;
+  height: 40px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  transform: translateY(-50%);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.modal-overlay.swipe-left::before {
+  right: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 24 24'%3E%3Cpath d='M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z'/%3E%3C/svg%3E");
+}
+
+.modal-overlay.swipe-right::before {
+  left: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 24 24'%3E%3Cpath d='M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z'/%3E%3C/svg%3E");
 }

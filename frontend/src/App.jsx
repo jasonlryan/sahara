@@ -1,29 +1,136 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import './App.css'; // We'll add styles here
 
 // Define the base URL for the backend API and static assets
 const LOCAL_DEV = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const BACKEND_URL = LOCAL_DEV ? 'http://localhost:3000' : ''; // Use localhost URL for development
 
-// At the top, after BACKEND_URL definition
-console.log('Environment:', { 
-  hostname: window.location.hostname,
-  isLocalDev: LOCAL_DEV,
-  BACKEND_URL,
-  fullLocation: window.location.href,
-  baseURI: document.baseURI
-});
-
 // Simple Modal Component (Placeholder for now)
 function MediaModal({ item, onClose }) {
   if (!item) return null;
 
-  const sourceFilename = getBaseFilename(item.Filename);
-  const originalUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [swiping, setSwiping] = useState(false);
+  const [swipeDirection, setSwipeDirection] = useState(null);
+  const contentRef = useRef(null);
+  
+  // Check if we're on a mobile device
+  const isMobileDevice = useMemo(() => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    ) || window.matchMedia('(max-width: 768px)').matches;
+  }, []);
+  
+  // Find the current item in the filtered items on mount
+  useEffect(() => {
+    // Get all media items that match the current filter criteria
+    const currentItems = window.filteredMediaItems || [];
+    setFilteredItems(currentItems);
+    
+    // Find the index of the current item
+    const index = currentItems.findIndex(i => i.Filename === item.Filename);
+    if (index !== -1) {
+      setCurrentIndex(index);
+    }
+  }, [item]);
+  
+  // Handle swipe events
+  const minSwipeDistance = 50;
+  
+  const onTouchStart = (e) => {
+    if (!isMobileDevice) return;
+    
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+    setSwiping(true);
+  };
+  
+  const onTouchMove = (e) => {
+    if (!isMobileDevice || !touchStart) return;
+    
+    const currentTouch = e.targetTouches[0].clientX;
+    setTouchEnd(currentTouch);
+    
+    // Calculate swipe direction for visual feedback
+    const diff = touchStart - currentTouch;
+    
+    // Only show visual feedback if swiping significantly
+    if (Math.abs(diff) > 20) {
+      setSwipeDirection(diff > 0 ? 'left' : 'right');
+      
+      // Apply transform to the content for visual feedback
+      if (contentRef.current) {
+        // Limit the movement to prevent excessive sliding
+        const maxTransform = 100;
+        const transform = Math.min(Math.abs(diff) * 0.5, maxTransform);
+        contentRef.current.style.transform = `translateX(${diff > 0 ? -transform : transform}px)`;
+      }
+    }
+  };
+  
+  const onTouchEnd = () => {
+    if (!isMobileDevice || !touchStart || !touchEnd) {
+      // Reset state even if not on mobile
+      setSwiping(false);
+      setSwipeDirection(null);
+      if (contentRef.current) {
+        contentRef.current.style.transform = '';
+      }
+      return;
+    }
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe && currentIndex < filteredItems.length - 1) {
+      // Navigate to next item
+      setCurrentIndex(prev => prev + 1);
+    } else if (isRightSwipe && currentIndex > 0) {
+      // Navigate to previous item
+      setCurrentIndex(prev => prev - 1);
+    }
+    
+    // Reset transform
+    if (contentRef.current) {
+      contentRef.current.style.transform = '';
+    }
+    
+    setSwiping(false);
+    setSwipeDirection(null);
+  };
+  
+  // Reset touch state if user cancels the gesture
+  const onTouchCancel = () => {
+    setSwiping(false);
+    setSwipeDirection(null);
+    if (contentRef.current) {
+      contentRef.current.style.transform = '';
+    }
+  };
+  
+  // Update displayed item when currentIndex changes
+  useEffect(() => {
+    if (filteredItems.length > 0 && currentIndex >= 0 && currentIndex < filteredItems.length) {
+      // We don't actually change the item prop, but render based on the index
+      const sourceFilename = getBaseFilename(filteredItems[currentIndex].Filename);
+      const originalUrl = filteredItems[currentIndex].URL.replace('/sahara/media/', '/sahara/main/media/');
+      
+      // Update mediaContent based on current index (done in render)
+    }
+  }, [currentIndex, filteredItems]);
+
+  const sourceFilename = getBaseFilename(filteredItems[currentIndex]?.Filename || item.Filename);
+  const originalUrl = (filteredItems[currentIndex]?.URL || item.URL).replace('/sahara/media/', '/sahara/main/media/');
 
   // Determine content based on media type
   let mediaContent;
-  if (item.MediaType && item.MediaType.toLowerCase() === 'image') {
+  const currentItem = filteredItems[currentIndex] || item;
+  
+  if (currentItem.MediaType && currentItem.MediaType.toLowerCase() === 'image') {
       mediaContent = (
           <div className="modal-image-viewer">
               <div>
@@ -31,10 +138,10 @@ function MediaModal({ item, onClose }) {
               </div>
           </div>
       );
-  } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
+  } else if (currentItem.MediaType && currentItem.MediaType.toLowerCase() === 'video') {
       // Use paths that work in both environments
-      const thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
-      const videoUrl = `${BACKEND_URL}/web_media/videos_480p/${getBaseFilename(item.Filename)}`;
+      const thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(currentItem.Filename)}`;
+      const videoUrl = `${BACKEND_URL}/web_media/videos_480p/${getBaseFilename(currentItem.Filename)}`;
       
       console.log("Modal video paths:", { thumbnailUrl, videoUrl });
       
@@ -51,7 +158,6 @@ function MediaModal({ item, onClose }) {
                   disableRemotePlayback
                   width="100%"
                   height="auto"
-                  style={{ backgroundImage: `url(${thumbnailUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
               >
                   <source src={videoUrl} type="video/mp4" />
                   Your browser does not support the video tag.
@@ -63,16 +169,34 @@ function MediaModal({ item, onClose }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}> 
-      <div className="modal-content" onClick={e => e.stopPropagation()}> 
+    <div 
+      className={`modal-overlay ${swiping ? 'swiping' : ''} ${swipeDirection ? `swipe-${swipeDirection}` : ''}`}
+      onClick={onClose}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      onTouchCancel={onTouchCancel}
+    > 
+      <div 
+        className="modal-content" 
+        onClick={e => e.stopPropagation()}
+        ref={contentRef}
+      > 
         <button className="modal-close" onClick={onClose}>X</button>
-        <h2>{item.Author || 'Unknown'} - {sourceFilename}</h2>
+        <h2>{currentItem.Author || 'Unknown'} - {sourceFilename}</h2>
         <hr />
         {mediaContent}
         <hr />
         <a href={originalUrl} className="download-link" download={sourceFilename}>
-          Download Original {item.MediaType === 'video' ? 'Video' : 'Image'}
+          Download Original {currentItem.MediaType === 'video' ? 'Video' : 'Image'}
         </a>
+        
+        {filteredItems.length > 1 && isMobileDevice && (
+          <div className="modal-indicator">
+            <span className="current-position">{currentIndex + 1}</span>
+            <span className="total-count">/{filteredItems.length}</span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -253,6 +377,11 @@ function App() {
      setSelectedDayOfWeek(event.target.value);
   }
 
+  // Store filtered items in window for use by modal
+  useEffect(() => {
+    window.filteredMediaItems = filteredItems;
+  }, [filteredItems]);
+
   if (loading) {
     return <div className="container">Loading media data...</div>;
   }
@@ -344,20 +473,9 @@ function App() {
                     thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
                     const videoUrl = `${BACKEND_URL}/web_media/videos_480p/${getBaseFilename(item.Filename)}`;
                     
-                    // Preload and check thumbnail loading
+                    // Preload the thumbnail image for better mobile display
                     const preloadImg = new Image();
-                    preloadImg.onload = () => console.log(`✅ Thumbnail loaded successfully: ${thumbnailUrl}`);
-                    preloadImg.onerror = () => console.error(`❌ Thumbnail failed to load: ${thumbnailUrl}`);
                     preloadImg.src = thumbnailUrl;
-                    
-                    // Also try direct fetch to debug
-                    fetch(thumbnailUrl)
-                      .then(resp => {
-                        console.log(`🔍 Thumbnail fetch status: ${resp.status} ${resp.statusText} for ${thumbnailUrl}`);
-                        return resp.blob();
-                      })
-                      .then(blob => console.log(`📸 Thumbnail blob type: ${blob.type}, size: ${blob.size} bytes`))
-                      .catch(err => console.error(`🛑 Thumbnail fetch error: ${err} for ${thumbnailUrl}`));
                     
                     console.log("Grid video paths:", { thumbnailUrl, videoUrl });
                     
@@ -379,7 +497,6 @@ function App() {
                             disableRemotePlayback
                             width="100%"
                             height="auto"
-                            style={{ backgroundImage: `url(${thumbnailUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
                         >
                             <source src={videoUrl} type="video/mp4" />
                             Your browser does not support the video tag.
