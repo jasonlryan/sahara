@@ -267,8 +267,7 @@ function MediaModal({ item, onClose }) {
         
         {filteredItems.length > 1 && (
           <div className="modal-pagination">
-            <span className="current-position">{currentIndex + 1}</span>
-            <span className="total-count">/{filteredItems.length}</span>
+            {currentIndex + 1}/{filteredItems.length}
           </div>
         )}
         
