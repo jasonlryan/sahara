@@ -8,14 +8,14 @@
             "maxDuration": 10
         }
     },
-    "routes": [
+    "rewrites": [
         {
-            "src": "/api/media",
-            "dest": "/api/media.js",
-            "methods": [
-                "GET",
-                "OPTIONS"
-            ]
+            "source": "/api/media",
+            "destination": "/api/media"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
         }
     ],
     "headers": [
@@ -55,6 +55,10 @@
                 {
                     "key": "Access-Control-Allow-Methods",
                     "value": "GET, OPTIONS"
+                },
+                {
+                    "key": "Access-Control-Allow-Headers",
+                    "value": "Content-Type"
                 }
             ]
         }
