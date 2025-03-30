@@ -5,96 +5,11 @@ import './App.css'; // We'll add styles here
 const BACKEND_URL = ''; // Empty string means use relative URLs
 
 // Simple Modal Component (Placeholder for now)
-function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
+function MediaModal({ item, onClose }) {
   if (!item) return null;
 
-  // Add useEffect to handle body scroll locking
-  useEffect(() => {
-    // Prevent scrolling on mount
-    document.body.style.overflow = 'hidden';
-    // Re-enable scrolling on cleanup
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, []); // Empty dependency array means this runs once on mount and cleanup
-
-  // Find current item index and get next/previous items
-  const currentIndex = filteredItems.findIndex(i => i.Filename === item.Filename);
-  const hasPrevious = currentIndex > 0;
-  const hasNext = currentIndex < filteredItems.length - 1;
-
-  // Touch handling for swipe
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchMove, setTouchMove] = useState(null);
-
-  const minSwipeDistance = 50;
-
-  const onTouchStart = (e) => {
-    setTouchStart(e.touches[0].clientX);
-    setTouchMove(null); // Reset touchMove on start
-  };
-
-  const onTouchMove = (e) => {
-    e.preventDefault(); // Prevent scrolling while swiping
-    setTouchMove(e.touches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchMove) return;
-    
-    const distance = touchStart - touchMove;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe && hasNext) {
-      const nextItem = filteredItems[currentIndex + 1];
-      setSelectedItem(nextItem);
-    }
-    if (isRightSwipe && hasPrevious) {
-      const previousItem = filteredItems[currentIndex - 1];
-      setSelectedItem(previousItem);
-    }
-
-    // Reset touch states
-    setTouchStart(null);
-    setTouchMove(null);
-  };
-
-  // Navigation functions
-  const showPrevious = (e) => {
-    e.stopPropagation();
-    if (hasPrevious) {
-      const previousItem = filteredItems[currentIndex - 1];
-      setSelectedItem(previousItem);
-    }
-  };
-
-  const showNext = (e) => {
-    e.stopPropagation();
-    if (hasNext) {
-      const nextItem = filteredItems[currentIndex + 1];
-      setSelectedItem(nextItem);
-    }
-  };
-
-  // Handle keyboard navigation
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (e.key === 'ArrowLeft' && hasPrevious) {
-        showPrevious(e);
-      } else if (e.key === 'ArrowRight' && hasNext) {
-        showNext(e);
-      } else if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [currentIndex, filteredItems]);
-
   const sourceFilename = getBaseFilename(item.Filename);
-  const originalUrl = getGitHubRawUrl(item.URL);
+  const originalUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
 
   // Determine content based on media type
   let mediaContent;
@@ -102,32 +17,23 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
       mediaContent = (
           <div className="modal-image-viewer">
               <div>
-                  <img 
-                    src={originalUrl} 
-                    alt={sourceFilename} 
-                    style={{ maxWidth: '100%', height: 'auto' }}
-                    draggable="false"
-                  />
+                  <img src={originalUrl} alt={sourceFilename} style={{ maxWidth: '100%', height: 'auto' }} />
               </div>
           </div>
       );
   } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
-      const baseFilename = getBaseFilename(item.Filename);
-      const videoUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
+      const thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
       mediaContent = (
           <div className="modal-video-viewer">
               <video 
                   controls 
                   preload="metadata" 
-                  poster={`/web_media/thumbnails/${baseFilename.replace('.mp4', '.jpg')}`}
+                  poster={thumbnailUrl} 
                   style={{ maxWidth: '100%', maxHeight: '60vh' }}
                   playsInline
                   webkit-playsinline="true"
-                  onError={(e) => {
-                      console.error('Video failed to load:', videoUrl);
-                  }}
               >
-                  <source src={videoUrl} type="video/mp4" />
+                  <source src={originalUrl} type="video/mp4" />
                   Your browser does not support the video tag.
               </video>
           </div>
@@ -137,30 +43,9 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
   }
 
   return (
-    <div 
-      className="modal-overlay" 
-      onClick={onClose}
-    > 
-      <div 
-        className="modal-content" 
-        onClick={e => e.stopPropagation()}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      > 
+    <div className="modal-overlay" onClick={onClose}> 
+      <div className="modal-content" onClick={e => e.stopPropagation()}> 
         <button className="modal-close" onClick={onClose}>X</button>
-        <div className="modal-navigation-container">
-          {hasPrevious && (
-            <button className="nav-button prev" onClick={showPrevious}>
-              ←
-            </button>
-          )}
-          {hasNext && (
-            <button className="nav-button next" onClick={showNext}>
-              →
-            </button>
-          )}
-        </div>
         <h2>{item.Author || 'Unknown'} - {sourceFilename}</h2>
         <hr />
         {mediaContent}
@@ -222,11 +107,6 @@ const formatDateToYYYYMMDD = (date) => {
   const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); // +1 because months are 0-indexed, padStart for leading zero
   const day = date.getUTCDate().toString().padStart(2, '0');
   return `${year}-${month}-${day}`;
-};
-
-// Helper function to get correct GitHub raw URL
-const getGitHubRawUrl = (url) => {
-  return url.replace('/sahara/media/', '/sahara/main/media/');
 };
 
 function App() {
@@ -422,48 +302,50 @@ function App() {
             <div className="thumbnail-grid">
               {items.map((item, index) => {
                 const sourceFilename = getBaseFilename(item.Filename);
+                let thumbnailUrl = '';
                 
                 if (item.MediaType && item.MediaType.toLowerCase() === 'image') {
-                    const thumbnailUrl = getGitHubRawUrl(item.URL);
-                    return (
-                      <div
-                        key={item.Filename || index}
-                        className="thumbnail-item"
-                        onClick={() => setSelectedItem(item)}
-                        title={`Filename: ${sourceFilename}\nAuthor: ${item.Author || 'Unknown'}\nDay: ${item.filter_day || 'N/A'}`}
-                      >
-                        <img src={thumbnailUrl} alt={sourceFilename} loading="lazy" />
-                      </div>
-                    );
+                    thumbnailUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
                 } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
-                    const baseFilename = getBaseFilename(item.Filename);
+                    thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
+                    const video480pUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
                     return (
                       <div
                         key={item.Filename || index}
                         className="thumbnail-item"
-                        onClick={() => setSelectedItem(item)}
                         title={`Filename: ${sourceFilename}\nAuthor: ${item.Author || 'Unknown'}\nDay: ${item.filter_day || 'N/A'}`}
                       >
-                        <div className="video-thumbnail">
-                          <img 
-                            src={`/web_media/thumbnails/${baseFilename.replace('.mp4', '.jpg')}`}
-                            alt={sourceFilename} 
-                            loading="lazy"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.parentElement.style.backgroundColor = '#000';
-                            }}
-                          />
-                          <div className="video-play-overlay">
-                            <span>▶️</span>
-                          </div>
-                        </div>
+                        <video 
+                            controls
+                            preload="none"
+                            poster={thumbnailUrl}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            playsInline
+                            webkit-playsinline="true"
+                        >
+                            <source src={video480pUrl} type="video/mp4" />
+                            Your browser does not support the video tag.
+                        </video>
                       </div>
                     );
                 } else {
                     // Placeholder for unknown type
                     return <div key={index} className="thumbnail-item error-thumb">?</div>;
                 }
+
+                const tooltipText = `Filename: ${sourceFilename}\nAuthor: ${item.Author || 'Unknown'}\nDay: ${item.filter_day || 'N/A'}`;
+
+                return (
+                  <div
+                    key={item.Filename || index}
+                    className="thumbnail-item"
+                    onClick={() => setSelectedItem(item)}
+                    title={tooltipText}
+                  >
+                    <img src={thumbnailUrl} alt={sourceFilename} loading="lazy" />
+                  </div>
+                );
               })}
             </div>
           </div>
@@ -471,12 +353,7 @@ function App() {
       )}
       
       {/* Render Modal when an item is selected */}
-      <MediaModal 
-        item={selectedItem} 
-        onClose={() => setSelectedItem(null)} 
-        filteredItems={filteredItems}
-        setSelectedItem={setSelectedItem}
-      />
+      <MediaModal item={selectedItem} onClose={() => setSelectedItem(null)} />
       
     </div>
   );
