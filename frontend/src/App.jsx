@@ -113,22 +113,22 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
       );
   } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
       const baseFilename = getBaseFilename(item.Filename);
-      const videoUrl = `/web_media/videos_480p/${baseFilename}`;
-      const thumbnailUrl = `/web_media/thumbnails/${baseFilename.replace('.mp4', '.jpg')}`;
+      const playbackUrl = `/web_media/videos_480p/${baseFilename}`; // For video playback
+      const downloadUrl = getGitHubRawUrl(item.URL); // For download link
       mediaContent = (
           <div className="modal-video-viewer">
               <video 
                   controls 
                   preload="metadata" 
-                  poster={thumbnailUrl}
+                  poster={`/web_media/thumbnails/${baseFilename.replace('.mp4', '.jpg')}`}
                   style={{ maxWidth: '100%', maxHeight: '60vh' }}
                   playsInline
                   webkit-playsinline="true"
                   onError={(e) => {
-                      console.error('Video failed to load:', videoUrl);
+                      console.error('Video failed to load:', playbackUrl);
                   }}
               >
-                  <source src={videoUrl} type="video/mp4" />
+                  <source src={playbackUrl} type="video/mp4" />
                   Your browser does not support the video tag.
               </video>
           </div>
@@ -166,7 +166,7 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
         <hr />
         {mediaContent}
         <hr />
-        <a href={originalUrl} className="download-link" download={sourceFilename}>
+        <a href={downloadUrl} className="download-link" download={sourceFilename}>
           Download Original {item.MediaType === 'video' ? 'Video' : 'Image'}
         </a>
       </div>
@@ -438,8 +438,6 @@ function App() {
                     );
                 } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
                     const baseFilename = getBaseFilename(item.Filename);
-                    const videoUrl = `/web_media/videos_480p/${baseFilename}`;
-                    const thumbnailUrl = `/web_media/thumbnails/${baseFilename.replace('.mp4', '.jpg')}`;
                     return (
                       <div
                         key={item.Filename || index}
@@ -449,7 +447,7 @@ function App() {
                       >
                         <div className="video-thumbnail">
                           <img 
-                            src={thumbnailUrl}
+                            src={`/web_media/thumbnails/${baseFilename.replace('.mp4', '.jpg')}`}
                             alt={sourceFilename} 
                             loading="lazy"
                             onError={(e) => {
