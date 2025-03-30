@@ -2,10 +2,20 @@
     "version": 2,
     "buildCommand": "cd frontend && npm install && npm run build",
     "outputDirectory": "frontend/dist",
-    "rewrites": [
+    "functions": {
+        "api/media.js": {
+            "memory": 1024,
+            "maxDuration": 10
+        }
+    },
+    "routes": [
         {
-            "source": "/api/media",
-            "destination": "/api/media"
+            "src": "/api/media",
+            "dest": "/api/media.js",
+            "methods": [
+                "GET",
+                "OPTIONS"
+            ]
         }
     ],
     "headers": [
