@@ -41,15 +41,13 @@ function MediaModal({ item, onClose }) {
   const minSwipeDistance = 50;
   
   const onTouchStart = (e) => {
-    if (!isMobileDevice) return;
-    
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
     setSwiping(true);
   };
   
   const onTouchMove = (e) => {
-    if (!isMobileDevice || !touchStart) return;
+    if (!touchStart) return;
     
     const currentTouch = e.targetTouches[0].clientX;
     setTouchEnd(currentTouch);
@@ -72,8 +70,8 @@ function MediaModal({ item, onClose }) {
   };
   
   const onTouchEnd = () => {
-    if (!isMobileDevice || !touchStart || !touchEnd) {
-      // Reset state even if not on mobile
+    if (!touchStart || !touchEnd) {
+      // Reset state even if not a complete swipe
       setSwiping(false);
       setSwipeDirection(null);
       if (contentRef.current) {
@@ -168,14 +166,97 @@ function MediaModal({ item, onClose }) {
       mediaContent = <p>Preview not available for this media type.</p>;
   }
 
+  // Add handlers for mouse/trackpad events
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(null);
+  const [endX, setEndX] = useState(null);
+  
+  const onMouseDown = (e) => {
+    // Only handle primary mouse button (left click)
+    if (e.button !== 0) return;
+    
+    setStartX(e.clientX);
+    setEndX(null);
+    setIsDragging(true);
+    e.preventDefault(); // Prevent text selection
+  };
+  
+  const onMouseMove = (e) => {
+    if (!isDragging || !startX) return;
+    
+    setEndX(e.clientX);
+    
+    // Calculate direction for visual feedback
+    const diff = startX - e.clientX;
+    
+    // Only show visual feedback if dragging significantly
+    if (Math.abs(diff) > 20) {
+      setSwipeDirection(diff > 0 ? 'left' : 'right');
+      
+      // Apply transform to the content for visual feedback
+      if (contentRef.current) {
+        // Limit the movement to prevent excessive sliding
+        const maxTransform = 100;
+        const transform = Math.min(Math.abs(diff) * 0.5, maxTransform);
+        contentRef.current.style.transform = `translateX(${diff > 0 ? -transform : transform}px)`;
+      }
+    }
+  };
+  
+  const onMouseUp = () => {
+    if (!isDragging || !startX || !endX) {
+      setIsDragging(false);
+      setSwipeDirection(null);
+      if (contentRef.current) {
+        contentRef.current.style.transform = '';
+      }
+      return;
+    }
+    
+    const distance = startX - endX;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe && currentIndex < filteredItems.length - 1) {
+      // Navigate to next item
+      setCurrentIndex(prev => prev + 1);
+    } else if (isRightSwipe && currentIndex > 0) {
+      // Navigate to previous item
+      setCurrentIndex(prev => prev - 1);
+    }
+    
+    // Reset transform
+    if (contentRef.current) {
+      contentRef.current.style.transform = '';
+    }
+    
+    setIsDragging(false);
+    setSwipeDirection(null);
+  };
+  
+  // Cancel dragging if mouse leaves the element
+  const onMouseLeave = () => {
+    if (isDragging) {
+      setIsDragging(false);
+      setSwipeDirection(null);
+      if (contentRef.current) {
+        contentRef.current.style.transform = '';
+      }
+    }
+  };
+
   return (
     <div 
-      className={`modal-overlay ${swiping ? 'swiping' : ''} ${swipeDirection ? `swipe-${swipeDirection}` : ''}`}
+      className={`modal-overlay ${swiping || isDragging ? 'swiping' : ''} ${swipeDirection ? `swipe-${swipeDirection}` : ''}`}
       onClick={onClose}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
       onTouchCancel={onTouchCancel}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseLeave}
     > 
       <div 
         className="modal-content" 
@@ -183,20 +264,20 @@ function MediaModal({ item, onClose }) {
         ref={contentRef}
       > 
         <button className="modal-close" onClick={onClose}>X</button>
-        <h2>{currentItem.Author || 'Unknown'} - {sourceFilename}</h2>
-        <hr />
-        {mediaContent}
-        <hr />
-        <a href={originalUrl} className="download-link" download={sourceFilename}>
-          Download Original {currentItem.MediaType === 'video' ? 'Video' : 'Image'}
-        </a>
         
-        {filteredItems.length > 1 && isMobileDevice && (
-          <div className="modal-indicator">
+        {filteredItems.length > 1 && (
+          <div className="modal-pagination">
             <span className="current-position">{currentIndex + 1}</span>
             <span className="total-count">/{filteredItems.length}</span>
           </div>
         )}
+        
+        {mediaContent}
+        <div className="modal-author">{currentItem.Author || 'Unknown'}</div>
+        
+        <a href={originalUrl} className="download-link" download={sourceFilename}>
+          Download Original {currentItem.MediaType === 'video' ? 'Video' : 'Image'}
+        </a>
       </div>
     </div>
   );
