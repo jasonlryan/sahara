@@ -5,8 +5,58 @@ import './App.css'; // We'll add styles here
 const BACKEND_URL = ''; // Empty string means use relative URLs
 
 // Simple Modal Component (Placeholder for now)
-function MediaModal({ item, onClose }) {
+function MediaModal({ item, onClose, filteredItems }) {
   if (!item) return null;
+
+  // Find current item index and get next/previous items
+  const currentIndex = filteredItems.findIndex(i => i.Filename === item.Filename);
+  const hasPrevious = currentIndex > 0;
+  const hasNext = currentIndex < filteredItems.length - 1;
+
+  // Navigation functions
+  const showPrevious = () => {
+    if (hasPrevious) {
+      const previousItem = filteredItems[currentIndex - 1];
+      setSelectedItem(previousItem);
+    }
+  };
+
+  const showNext = () => {
+    if (hasNext) {
+      const nextItem = filteredItems[currentIndex + 1];
+      setSelectedItem(nextItem);
+    }
+  };
+
+  // Touch handling for swipe
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.touches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && hasNext) {
+      showNext();
+    }
+    if (isRightSwipe && hasPrevious) {
+      showPrevious();
+    }
+  };
 
   const sourceFilename = getBaseFilename(item.Filename);
   const originalUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
@@ -43,9 +93,27 @@ function MediaModal({ item, onClose }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}> 
+    <div 
+      className="modal-overlay" 
+      onClick={onClose}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    > 
       <div className="modal-content" onClick={e => e.stopPropagation()}> 
         <button className="modal-close" onClick={onClose}>X</button>
+        <div className="modal-navigation">
+          {hasPrevious && (
+            <button className="nav-button prev" onClick={showPrevious}>
+              ←
+            </button>
+          )}
+          {hasNext && (
+            <button className="nav-button next" onClick={showNext}>
+              →
+            </button>
+          )}
+        </div>
         <h2>{item.Author || 'Unknown'} - {sourceFilename}</h2>
         <hr />
         {mediaContent}
@@ -353,7 +421,11 @@ function App() {
       )}
       
       {/* Render Modal when an item is selected */}
-      <MediaModal item={selectedItem} onClose={() => setSelectedItem(null)} />
+      <MediaModal 
+        item={selectedItem} 
+        onClose={() => setSelectedItem(null)} 
+        filteredItems={filteredItems}
+      />
       
     </div>
   );
