@@ -4,6 +4,14 @@ import './App.css'; // We'll add styles here
 // Define the base URL for the backend API and static assets
 const BACKEND_URL = ''; // Empty string means use relative URLs
 
+// Check if we're running on Vercel
+const isVercel = window.location.hostname.includes('vercel.app');
+console.log("Environment detection:", { isVercel, hostname: window.location.hostname });
+
+// After we deploy web_media to Vercel, we should use the local paths in both environments
+// This is a temporary fallback in case the web_media directory is not available
+const useGitHubRawForThumbnails = isVercel; 
+
 // Simple Modal Component (Placeholder for now)
 function MediaModal({ item, onClose }) {
   if (!item) return null;
@@ -22,7 +30,21 @@ function MediaModal({ item, onClose }) {
           </div>
       );
   } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
-      const thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
+      // Determine which URLs to use based on environment
+      let thumbnailUrl, videoUrl;
+      
+      // Primary option: Use web_media directory (best performance)
+      thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
+      videoUrl = `${BACKEND_URL}/web_media/videos_480p/${getBaseFilename(item.Filename)}`;
+      
+      // Fallback option: GitHub raw URLs (if web_media is not deployed)
+      if (useGitHubRawForThumbnails) {
+          thumbnailUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/').replace('.mp4', '.jpg');
+          videoUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
+      }
+      
+      console.log("Media paths:", { thumbnailUrl, videoUrl, filename: sourceFilename, useGitHubRawForThumbnails });
+      
       mediaContent = (
           <div className="modal-video-viewer">
               <video 
@@ -33,7 +55,7 @@ function MediaModal({ item, onClose }) {
                   playsInline
                   webkit-playsinline="true"
               >
-                  <source src={originalUrl} type="video/mp4" />
+                  <source src={videoUrl} type="video/mp4" />
                   Your browser does not support the video tag.
               </video>
           </div>
@@ -307,8 +329,21 @@ function App() {
                 if (item.MediaType && item.MediaType.toLowerCase() === 'image') {
                     thumbnailUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
                 } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
+                    // Determine which URLs to use based on environment
+                    let videoUrl, thumbnailUrl;
+                    
+                    // Primary option: Use web_media directory (best performance)
                     thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
-                    const video480pUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
+                    videoUrl = `${BACKEND_URL}/web_media/videos_480p/${getBaseFilename(item.Filename)}`;
+                    
+                    // Fallback option: GitHub raw URLs (if web_media is not deployed)
+                    if (useGitHubRawForThumbnails) {
+                        thumbnailUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/').replace('.mp4', '.jpg');
+                        videoUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
+                    }
+                    
+                    console.log("Grid paths:", { thumbnailUrl, videoUrl, filename: sourceFilename, useGitHubRawForThumbnails });
+                    
                     return (
                       <div
                         key={item.Filename || index}
@@ -320,11 +355,11 @@ function App() {
                             preload="none"
                             poster={thumbnailUrl}
                             onClick={(e) => e.stopPropagation()}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover' }}
                             playsInline
                             webkit-playsinline="true"
                         >
-                            <source src={video480pUrl} type="video/mp4" />
+                            <source src={videoUrl} type="video/mp4" />
                             Your browser does not support the video tag.
                         </video>
                       </div>
