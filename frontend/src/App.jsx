@@ -5,6 +5,15 @@ import './App.css'; // We'll add styles here
 const LOCAL_DEV = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const BACKEND_URL = LOCAL_DEV ? 'http://localhost:3000' : ''; // Use localhost URL for development
 
+// At the top, after BACKEND_URL definition
+console.log('Environment:', { 
+  hostname: window.location.hostname,
+  isLocalDev: LOCAL_DEV,
+  BACKEND_URL,
+  fullLocation: window.location.href,
+  baseURI: document.baseURI
+});
+
 // Simple Modal Component (Placeholder for now)
 function MediaModal({ item, onClose }) {
   if (!item) return null;
@@ -42,6 +51,7 @@ function MediaModal({ item, onClose }) {
                   disableRemotePlayback
                   width="100%"
                   height="auto"
+                  style={{ backgroundImage: `url(${thumbnailUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
               >
                   <source src={videoUrl} type="video/mp4" />
                   Your browser does not support the video tag.
@@ -334,9 +344,20 @@ function App() {
                     thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
                     const videoUrl = `${BACKEND_URL}/web_media/videos_480p/${getBaseFilename(item.Filename)}`;
                     
-                    // Preload the thumbnail image for better mobile display
+                    // Preload and check thumbnail loading
                     const preloadImg = new Image();
+                    preloadImg.onload = () => console.log(`✅ Thumbnail loaded successfully: ${thumbnailUrl}`);
+                    preloadImg.onerror = () => console.error(`❌ Thumbnail failed to load: ${thumbnailUrl}`);
                     preloadImg.src = thumbnailUrl;
+                    
+                    // Also try direct fetch to debug
+                    fetch(thumbnailUrl)
+                      .then(resp => {
+                        console.log(`🔍 Thumbnail fetch status: ${resp.status} ${resp.statusText} for ${thumbnailUrl}`);
+                        return resp.blob();
+                      })
+                      .then(blob => console.log(`📸 Thumbnail blob type: ${blob.type}, size: ${blob.size} bytes`))
+                      .catch(err => console.error(`🛑 Thumbnail fetch error: ${err} for ${thumbnailUrl}`));
                     
                     console.log("Grid video paths:", { thumbnailUrl, videoUrl });
                     
@@ -358,6 +379,7 @@ function App() {
                             disableRemotePlayback
                             width="100%"
                             height="auto"
+                            style={{ backgroundImage: `url(${thumbnailUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
                         >
                             <source src={videoUrl} type="video/mp4" />
                             Your browser does not support the video tag.
