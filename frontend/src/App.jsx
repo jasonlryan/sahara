@@ -112,8 +112,10 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
           </div>
       );
   } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
-      const thumbnailUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/').replace(/\.[^.]+$/, '.jpg');
-      const video480pUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
+      const thumbnailUrl = item.Thumbnail 
+          ? item.Thumbnail.replace('/sahara/media/', '/sahara/main/media/')
+          : item.URL.replace('/sahara/media/', '/sahara/main/media/').replace(/\.mp4$/, '_thumb.jpg');
+      const video480pUrl = `/web_media/videos_480p/${getBaseFilename(item.Filename)}`;
       mediaContent = (
           <div className="modal-video-viewer">
               <video 
@@ -124,7 +126,7 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
                   playsInline
                   webkit-playsinline="true"
               >
-                  <source src={originalUrl} type="video/mp4" />
+                  <source src={video480pUrl} type="video/mp4" />
                   Your browser does not support the video tag.
               </video>
           </div>
@@ -419,26 +421,27 @@ function App() {
                 if (item.MediaType && item.MediaType.toLowerCase() === 'image') {
                     thumbnailUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
                 } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
-                    thumbnailUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/').replace(/\.[^.]+$/, '.jpg');
-                    const video480pUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
+                    thumbnailUrl = item.Thumbnail 
+                        ? item.Thumbnail.replace('/sahara/media/', '/sahara/main/media/')
+                        : item.URL.replace('/sahara/media/', '/sahara/main/media/').replace(/\.mp4$/, '_thumb.jpg');
+                    const video480pUrl = `/web_media/videos_480p/${getBaseFilename(item.Filename)}`;
                     return (
                       <div
                         key={item.Filename || index}
                         className="thumbnail-item"
+                        onClick={() => setSelectedItem(item)}
                         title={`Filename: ${sourceFilename}\nAuthor: ${item.Author || 'Unknown'}\nDay: ${item.filter_day || 'N/A'}`}
                       >
-                        <video 
-                            controls
-                            preload="none"
-                            poster={thumbnailUrl}
-                            onClick={(e) => e.stopPropagation()}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            playsInline
-                            webkit-playsinline="true"
-                        >
-                            <source src={video480pUrl} type="video/mp4" />
-                            Your browser does not support the video tag.
-                        </video>
+                        <div className="video-thumbnail">
+                          <img 
+                            src={thumbnailUrl} 
+                            alt={sourceFilename} 
+                            loading="lazy"
+                          />
+                          <div className="video-play-overlay">
+                            <span>▶️</span>
+                          </div>
+                        </div>
                       </div>
                     );
                 } else {
