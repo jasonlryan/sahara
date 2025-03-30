@@ -206,6 +206,21 @@ h1 {
   display: block;
   width: 100%;
   height: auto;
+  object-fit: contain;
+  background-color: #000; /* Add a dark background for videos */
+}
+
+/* Video-specific thumbnail styles */
+.thumbnail-item video {
+  min-height: 150px; /* Ensure videos have a minimum height */
+}
+
+.modal-video-viewer video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  background-color: #000; /* Dark background for videos */
 }
 
 /* Make video controls always visible on mobile */
@@ -434,4 +449,20 @@ h1 {
 .filter-controls select:focus {
   outline: 2px solid #cb4b16; /* Orange outline */
   border-color: transparent;
+}
+
+/* Video thumbnails for mobile */
+@media (max-width: 767px) {
+  .thumbnail-item video {
+    min-height: 120px;
+    background-color: #000;
+    background-size: cover;
+    background-position: center;
+  }
+  
+  /* Force poster to display */
+  .thumbnail-item video[poster] {
+    object-fit: cover;
+    -webkit-object-fit: cover;
+  }
 }

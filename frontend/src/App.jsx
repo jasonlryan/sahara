@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import './App.css'; // We'll add styles here
 
 // Define the base URL for the backend API and static assets
-const BACKEND_URL = ''; // Empty string means use relative URLs
+const LOCAL_DEV = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const BACKEND_URL = LOCAL_DEV ? 'http://localhost:3000' : ''; // Use localhost URL for development
 
 // Simple Modal Component (Placeholder for now)
 function MediaModal({ item, onClose }) {
@@ -26,6 +27,8 @@ function MediaModal({ item, onClose }) {
       const thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
       const videoUrl = `${BACKEND_URL}/web_media/videos_480p/${getBaseFilename(item.Filename)}`;
       
+      console.log("Modal video paths:", { thumbnailUrl, videoUrl });
+      
       mediaContent = (
           <div className="modal-video-viewer">
               <video 
@@ -34,6 +37,11 @@ function MediaModal({ item, onClose }) {
                   poster={thumbnailUrl} 
                   playsInline
                   webkit-playsinline="true"
+                  x-webkit-airplay="allow"
+                  disablePictureInPicture
+                  disableRemotePlayback
+                  width="100%"
+                  height="auto"
               >
                   <source src={videoUrl} type="video/mp4" />
                   Your browser does not support the video tag.
@@ -139,7 +147,9 @@ function App() {
   const [dayOfWeekOptions, setDayOfWeekOptions] = useState([]); // Renamed from dateOptions
 
   useEffect(() => {
-    fetch(`${BACKEND_URL}/api/media`)
+    const apiUrl = `${BACKEND_URL}/api/media`;
+    console.log("Fetching media data from:", apiUrl);
+    fetch(apiUrl)
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -324,6 +334,12 @@ function App() {
                     thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
                     const videoUrl = `${BACKEND_URL}/web_media/videos_480p/${getBaseFilename(item.Filename)}`;
                     
+                    // Preload the thumbnail image for better mobile display
+                    const preloadImg = new Image();
+                    preloadImg.src = thumbnailUrl;
+                    
+                    console.log("Grid video paths:", { thumbnailUrl, videoUrl });
+                    
                     return (
                       <div
                         key={item.Filename || index}
@@ -332,11 +348,16 @@ function App() {
                       >
                         <video 
                             controls
-                            preload="none"
+                            preload="metadata"
                             poster={thumbnailUrl}
                             onClick={(e) => e.stopPropagation()}
                             playsInline
                             webkit-playsinline="true"
+                            x-webkit-airplay="allow"
+                            disablePictureInPicture
+                            disableRemotePlayback
+                            width="100%"
+                            height="auto"
                         >
                             <source src={videoUrl} type="video/mp4" />
                             Your browser does not support the video tag.
