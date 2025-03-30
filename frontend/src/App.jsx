@@ -13,6 +13,43 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex < filteredItems.length - 1;
 
+  // Touch handling for swipe
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchMove, setTouchMove] = useState(null);
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchStart(e.touches[0].clientX);
+    setTouchMove(null); // Reset touchMove on start
+  };
+
+  const onTouchMove = (e) => {
+    e.preventDefault(); // Prevent scrolling while swiping
+    setTouchMove(e.touches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchMove) return;
+    
+    const distance = touchStart - touchMove;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && hasNext) {
+      const nextItem = filteredItems[currentIndex + 1];
+      setSelectedItem(nextItem);
+    }
+    if (isRightSwipe && hasPrevious) {
+      const previousItem = filteredItems[currentIndex - 1];
+      setSelectedItem(previousItem);
+    }
+
+    // Reset touch states
+    setTouchStart(null);
+    setTouchMove(null);
+  };
+
   // Navigation functions
   const showPrevious = (e) => {
     e.stopPropagation();
@@ -44,37 +81,7 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [currentIndex, filteredItems]); // Add dependencies
-
-  // Touch handling for swipe
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
-
-  const minSwipeDistance = 50;
-
-  const onTouchStart = (e) => {
-    setTouchEnd(null);
-    setTouchStart(e.touches[0].clientX);
-  };
-
-  const onTouchMove = (e) => {
-    setTouchEnd(e.touches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe && hasNext) {
-      showNext(new Event('swipe'));
-    }
-    if (isRightSwipe && hasPrevious) {
-      showPrevious(new Event('swipe'));
-    }
-  };
+  }, [currentIndex, filteredItems]);
 
   const sourceFilename = getBaseFilename(item.Filename);
   const originalUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
@@ -85,7 +92,12 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
       mediaContent = (
           <div className="modal-image-viewer">
               <div>
-                  <img src={originalUrl} alt={sourceFilename} style={{ maxWidth: '100%', height: 'auto' }} />
+                  <img 
+                    src={originalUrl} 
+                    alt={sourceFilename} 
+                    style={{ maxWidth: '100%', height: 'auto' }}
+                    draggable="false" // Prevent image dragging on mobile
+                  />
               </div>
           </div>
       );
@@ -114,11 +126,14 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
     <div 
       className="modal-overlay" 
       onClick={onClose}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
     > 
-      <div className="modal-content" onClick={e => e.stopPropagation()}> 
+      <div 
+        className="modal-content" 
+        onClick={e => e.stopPropagation()}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      > 
         <button className="modal-close" onClick={onClose}>X</button>
         <div className="modal-navigation-container">
           {hasPrevious && (
