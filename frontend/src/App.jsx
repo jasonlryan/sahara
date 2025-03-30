@@ -9,7 +9,7 @@ function MediaModal({ item, onClose }) {
   if (!item) return null;
 
   const sourceFilename = getBaseFilename(item.Filename);
-  const originalUrl = item.URL; // Use the GitHub raw URL
+  const originalUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
 
   // Determine content based on media type
   let mediaContent;
@@ -17,7 +17,7 @@ function MediaModal({ item, onClose }) {
       mediaContent = (
           <div className="modal-image-viewer">
               <div>
-                  <img src={item.URL} alt={sourceFilename} style={{ maxWidth: '100%', height: 'auto' }} />
+                  <img src={originalUrl} alt={sourceFilename} style={{ maxWidth: '100%', height: 'auto' }} />
               </div>
           </div>
       );
@@ -33,7 +33,7 @@ function MediaModal({ item, onClose }) {
                   playsInline
                   webkit-playsinline="true"
               >
-                  <source src={item.URL} type="video/mp4" />
+                  <source src={originalUrl} type="video/mp4" />
                   Your browser does not support the video tag.
               </video>
           </div>
@@ -305,10 +305,10 @@ function App() {
                 let thumbnailUrl = '';
                 
                 if (item.MediaType && item.MediaType.toLowerCase() === 'image') {
-                    thumbnailUrl = item.URL; // Use the GitHub raw URL
+                    thumbnailUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
                 } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
                     thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
-                    const video480pUrl = item.URL; // Use the GitHub raw URL
+                    const video480pUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
                     return (
                       <div
                         key={item.Filename || index}
