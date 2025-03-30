@@ -202,15 +202,19 @@ h1 {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.thumbnail-item img {
+.thumbnail-item img, .thumbnail-item video {
   display: block;
   width: 100%;
-  /* height: 100%; */
-  /* Remove fixed height */
   height: auto;
-  /* Let height adjust based on width and aspect ratio */
-  /* object-fit: cover; */
-  /* Remove cropping */
+}
+
+.thumbnail-item video::-webkit-media-controls {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.thumbnail-item video:hover::-webkit-media-controls {
+  opacity: 1;
 }
 
 .thumbnail-item.error-thumb {

@@ -301,7 +301,9 @@ function App() {
         <p>No media items match the current filters.</p>
       )}
       {!loading && !error && (
-        Object.entries(groupedFilteredMedia).map(([author, items]) => ( 
+        Object.entries(groupedFilteredMedia)
+          .sort(([authorA], [authorB]) => authorA.localeCompare(authorB))
+          .map(([author, items]) => ( 
           <div key={author} className="author-group">
             <h2>{author}</h2>
             <div className="thumbnail-grid">
@@ -313,13 +315,31 @@ function App() {
                     thumbnailUrl = `${BACKEND_URL}/web_media/400/${sourceFilename}`; // Use 400px as thumb
                 } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
                     thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
+                    const video480pUrl = `${BACKEND_URL}/web_media/videos_480p/${sourceFilename}`;
+                    return (
+                      <div
+                        key={item.Filename || index}
+                        className="thumbnail-item"
+                        title={`Filename: ${sourceFilename}\nAuthor: ${item.Author || 'Unknown'}\nDay: ${item.filter_day || 'N/A'}`}
+                      >
+                        <video 
+                            controls 
+                            preload="none"
+                            poster={thumbnailUrl}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        >
+                            <source src={video480pUrl} type="video/mp4" />
+                            Your browser does not support the video tag.
+                        </video>
+                      </div>
+                    );
                 } else {
-                     // Placeholder for unknown type - or skip
-                     return <div key={index} className="thumbnail-item error-thumb">?</div>;
+                    // Placeholder for unknown type
+                    return <div key={index} className="thumbnail-item error-thumb">?</div>;
                 }
 
-                // Tooltip now includes relative day
-                 const tooltipText = `Filename: ${sourceFilename}\nAuthor: ${item.Author || 'Unknown'}\nDay: ${item.filter_day || 'N/A'}`;
+                const tooltipText = `Filename: ${sourceFilename}\nAuthor: ${item.Author || 'Unknown'}\nDay: ${item.filter_day || 'N/A'}`;
 
                 return (
                   <div
