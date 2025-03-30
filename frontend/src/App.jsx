@@ -113,8 +113,7 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
       );
   } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
       const baseFilename = getBaseFilename(item.Filename);
-      const playbackUrl = `/web_media/videos_480p/${baseFilename}`; // For video playback
-      const downloadUrl = getGitHubRawUrl(item.URL); // For download link
+      const videoUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
       mediaContent = (
           <div className="modal-video-viewer">
               <video 
@@ -125,10 +124,10 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
                   playsInline
                   webkit-playsinline="true"
                   onError={(e) => {
-                      console.error('Video failed to load:', playbackUrl);
+                      console.error('Video failed to load:', videoUrl);
                   }}
               >
-                  <source src={playbackUrl} type="video/mp4" />
+                  <source src={videoUrl} type="video/mp4" />
                   Your browser does not support the video tag.
               </video>
           </div>
@@ -166,7 +165,7 @@ function MediaModal({ item, onClose, filteredItems, setSelectedItem }) {
         <hr />
         {mediaContent}
         <hr />
-        <a href={downloadUrl} className="download-link" download={sourceFilename}>
+        <a href={originalUrl} className="download-link" download={sourceFilename}>
           Download Original {item.MediaType === 'video' ? 'Video' : 'Image'}
         </a>
       </div>
