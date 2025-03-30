@@ -2,16 +2,34 @@ const fs = require("fs").promises;
 const path = require("path");
 
 module.exports = async (req, res) => {
+  console.log("API endpoint hit:", req.url);
+  console.log("Request method:", req.method);
+  console.log("Request headers:", req.headers);
+
   // Enable CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   // Handle OPTIONS request for CORS preflight
   if (req.method === "OPTIONS") {
+    console.log("Handling OPTIONS request");
     res.status(200).end();
     return;
   }
 
+  console.log("Sending test response");
+  // Return a test response first to check if the API is working
+  return res.status(200).json([
+    {
+      Filename: "test.jpg",
+      Author: "Test Author",
+      MediaType: "image",
+      filter_day: "Monday",
+    },
+  ]);
+
+  /* Commenting out CSV reading for now
   try {
     // Read the CSV file as text
     const mediaDataPath = path.join(process.cwd(), "media_data.csv");
@@ -40,4 +58,5 @@ module.exports = async (req, res) => {
       .status(500)
       .json({ error: "Failed to load media data", details: error.message });
   }
+  */
 };
