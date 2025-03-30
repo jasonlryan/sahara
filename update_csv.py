@@ -4,12 +4,15 @@ import re
 import sys
 from PIL import Image
 from datetime import datetime
+from urllib.parse import quote # Import quote
 
 # --- Configuration ---
 SOURCE_DIR = 'media'
 CSV_FILE = 'media_data.csv'
 SUPPORTED_EXTENSIONS = ('.jpeg', '.jpg', '.png', '.gif', '.mp4') # Add video extensions
-EXPECTED_HEADERS = ['Author', 'Filename', 'DateTime', 'full_size', 'MediaType'] # Add MediaType
+EXPECTED_HEADERS = ['URL', 'Author', 'Filename', 'DateTime', 'full_size', 'MediaType', 'mediaUrl'] # Add URL as first header
+GITHUB_RAW_BASE_URL = 'https://raw.githubusercontent.com/jasonlryan/sahara/main/' # GitHub URL base
+# LOCAL_BASE_URL = 'http://localhost:3000' # Keep for reference if needed
 # Regex to capture Author, Date, Time from WhatsApp format
 # Example: AuthorName.WhatsApp Image 2025-03-28 at 21.53.35.jpeg
 # Example: AuthorName.WhatsApp Video 2025-03-23 at 16.04.40.mp4
@@ -52,9 +55,9 @@ def get_image_dimensions(file_path):
         print(f"[Error] Failed to get dimensions for {file_path}: {e}", file=sys.stderr)
     return None # Return None on error
 
-def update_media_csv():
-    """Scans the media directory and updates the CSV with new files."""
-    print(f"Starting CSV update process...")
+def sync_and_update_csv():
+    """Synchronizes the CSV with the media directory and updates with new files."""
+    print(f"Starting CSV synchronization and update process...")
     print(f"Source directory: {SOURCE_DIR}")
     print(f"CSV file: {CSV_FILE}")
 
@@ -65,6 +68,29 @@ def update_media_csv():
     existing_filenames_in_csv = get_existing_filenames(CSV_FILE)
     print(f"Found {len(existing_filenames_in_csv)} existing entries in {CSV_FILE}.")
 
+    # Get list of files in the media directory
+    media_files = set(os.listdir(SOURCE_DIR))
+
+    # Identify and remove entries for missing files
+    updated_rows = []
+    with open(CSV_FILE, mode='r', newline='', encoding='utf-8') as infile:
+        reader = csv.DictReader(infile)
+        fieldnames = reader.fieldnames
+        for row in reader:
+            if row['Filename'].split('/')[-1] in media_files:
+                updated_rows.append(row)
+            else:
+                print(f"Removing missing file entry: {row['Filename']}")
+
+    # Write the updated data back to the CSV file
+    with open(CSV_FILE, mode='w', newline='', encoding='utf-8') as outfile:
+        writer = csv.DictWriter(outfile, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(updated_rows)
+
+    print(f"Synchronization complete. {len(existing_filenames_in_csv) - len(updated_rows)} entries removed.")
+
+    # Continue with adding new files
     new_rows = []
     files_scanned = 0
     files_added = 0
@@ -73,95 +99,87 @@ def update_media_csv():
 
     for filename in os.listdir(SOURCE_DIR):
         source_path = os.path.join(SOURCE_DIR, filename)
-        # Construct the relative path as stored in the CSV for comparison
-        relative_path = os.path.join(SOURCE_DIR, filename) # e.g., media/image.jpeg
-        
-        # Check if it's a file and has a supported extension
+        relative_path = os.path.join(SOURCE_DIR, filename)
+
         if not os.path.isfile(source_path) or not filename.lower().endswith(SUPPORTED_EXTENSIONS):
-             continue # Skip directories or unsupported file types
+            continue
 
         files_scanned += 1
 
-        # --- Check if already in CSV --- 
         if relative_path in existing_filenames_in_csv:
-            # print(f"  - Skipping (already in CSV): {filename}") # Optional: verbose skipping
             files_skipped += 1
             continue
-        # --- End Check ---
-        
+
         print(f"Processing new file: {filename}")
 
-        # --- Determine Media Type --- 
         media_type = 'unknown'
         file_ext = filename.lower().split('.')[-1]
         if file_ext in ('jpeg', 'jpg', 'png', 'gif'):
             media_type = 'image'
-        elif file_ext in ('mp4', 'mov', 'avi'): # Add other video types if needed
+        elif file_ext in ('mp4', 'mov', 'avi'):
             media_type = 'video'
-        # --- End Determine Media Type ---
 
-        # Attempt to parse filename for author, date, time
-        author = filename.split('.')[0] # Simple extraction before first dot
+        author = filename.split('.')[0]
         date_str = ''
         time_str = ''
         datetime_str = ''
         match = FILENAME_PATTERN.match(filename)
         if match:
-             # Overwrite author if pattern matches, potentially more specific
-             author = match.group(1) 
-             date_str = match.group(2)
-             time_str = match.group(3).replace('.', ':') # Change HH.MM.SS to HH:MM:SS
-             try:
-                 # Combine and format (optional validation)
-                 parsed_dt = datetime.strptime(f"{date_str} {time_str}", '%Y-%m-%d %H:%M:%S')
-                 datetime_str = parsed_dt.strftime('%Y-%m-%d %H:%M:%S')
-             except ValueError:
-                 print(f"  [Warning] Could not parse date/time '{date_str} {time_str}' for {filename}", file=sys.stderr)
-                 datetime_str = '' # Or keep raw parts if needed
+            author = match.group(1)
+            date_str = match.group(2)
+            time_str = match.group(3).replace('.', ':')
+            try:
+                parsed_dt = datetime.strptime(f"{date_str} {time_str}", '%Y-%m-%d %H:%M:%S')
+                datetime_str = parsed_dt.strftime('%Y-%m-%d %H:%M:%S')
+            except ValueError:
+                print(f"  [Warning] Could not parse date/time '{date_str} {time_str}' for {filename}", file=sys.stderr)
+                datetime_str = ''
         else:
             print(f"  [Warning] Filename '{filename}' did not match expected WhatsApp pattern. Using basic author extraction.", file=sys.stderr)
-            # Leave datetime_str empty if pattern doesn't match
 
-        # Get image dimensions only for images
-        dimensions = '' # Default to empty for non-images
+        dimensions = ''
         if media_type == 'image':
             dimensions = get_image_dimensions(source_path)
             if dimensions is None:
                 print(f"  [Error] Skipping image due to dimension reading error: {filename}", file=sys.stderr)
                 errors += 1
-                continue # Skip if we couldn't get dimensions for an image
-        
-        # Add to list of new rows to append
+                continue
+
+        github_media_url = ''
+        try:
+            dir_part, file_part = os.path.split(relative_path)
+            encoded_file_part = quote(file_part)
+            encoded_relative_path = os.path.join(dir_part, encoded_file_part).replace('\\', '/')
+            github_media_url = f"{GITHUB_RAW_BASE_URL.rstrip('/')}/{encoded_relative_path.lstrip('/')}"
+        except Exception as url_e:
+            print(f"  [Warning] Failed to generate GitHub URL for {relative_path}: {url_e}", file=sys.stderr)
+
         new_rows.append({
+            'URL': github_media_url,
             'Author': author,
             'Filename': relative_path,
             'DateTime': datetime_str,
-            'full_size': dimensions, # Will be empty for videos
-            'MediaType': media_type
+            'full_size': dimensions,
+            'MediaType': media_type,
+            'mediaUrl': github_media_url
         })
         files_added += 1
         print(f"  - Added: Type='{media_type}', Author='{author}', DateTime='{datetime_str}', Size='{dimensions or 'N/A'}'")
-        
-    # --- Append new rows to CSV --- 
+
     if new_rows:
         print(f"Appending {len(new_rows)} new entries to {CSV_FILE}...")
-        # Check if file exists to determine if header needs writing
         file_exists = os.path.exists(CSV_FILE)
         needs_header = (not file_exists or os.path.getsize(CSV_FILE) == 0)
-        
-        # If file exists, check if headers actually match
+
         if file_exists and not needs_header:
             try:
-                 with open(CSV_FILE, mode='r', newline='', encoding='utf-8') as checkfile:
-                     # Read just the first line to check headers
-                     reader = csv.reader(checkfile)
-                     actual_headers = next(reader, None)
-                     if actual_headers != EXPECTED_HEADERS:
-                         print(f"[Warning] Existing headers {actual_headers} differ from expected {EXPECTED_HEADERS}. Header may be incorrect.", file=sys.stderr)
-                         # Decide if you want to force header write or handle mismatch
-                         # needs_header = True # Uncomment to force rewrite (dangerous if data exists)
+                with open(CSV_FILE, mode='r', newline='', encoding='utf-8') as checkfile:
+                    reader = csv.reader(checkfile)
+                    actual_headers = next(reader, None)
+                    if actual_headers != EXPECTED_HEADERS:
+                        print(f"[Warning] Existing headers {actual_headers} differ from expected {EXPECTED_HEADERS}. Header may be incorrect.", file=sys.stderr)
             except Exception as e:
-                 print(f"[Warning] Could not read existing headers from {CSV_FILE}: {e}", file=sys.stderr)
+                print(f"[Warning] Could not read existing headers from {CSV_FILE}: {e}", file=sys.stderr)
 
         try:
             with open(CSV_FILE, mode='a', newline='', encoding='utf-8') as outfile:
@@ -171,12 +189,12 @@ def update_media_csv():
                     writer.writeheader()
                 writer.writerows(new_rows)
         except Exception as e:
-             print(f"[Error] Failed to write to CSV file {CSV_FILE}: {e}", file=sys.stderr)
-             errors += len(new_rows) # Count these as errors
-             files_added -= len(new_rows)
+            print(f"[Error] Failed to write to CSV file {CSV_FILE}: {e}", file=sys.stderr)
+            errors += len(new_rows)
+            files_added -= len(new_rows)
 
-    print("\nCSV update process complete.")
+    print("\nCSV synchronization and update process complete.")
     print(f"Summary: Scanned={files_scanned}, Added={files_added}, Skipped (already present)={files_skipped}, Errors={errors}")
 
 if __name__ == "__main__":
-    update_media_csv() 
+    sync_and_update_csv() 

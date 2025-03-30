@@ -5,10 +5,86 @@ import './App.css'; // We'll add styles here
 // This assumes the backend runs on port 3000
 const BACKEND_URL = 'http://localhost:3000'; 
 
+// Simple Modal Component (Placeholder for now)
+function MediaModal({ item, onClose }) {
+  if (!item) return null;
+
+  const sourceFilename = getBaseFilename(item.Filename);
+  const originalUrl = `${BACKEND_URL}/${item.Filename}`;
+
+  // Determine content based on media type
+  let mediaContent;
+  if (item.MediaType && item.MediaType.toLowerCase() === 'image') {
+      const web800Url = `${BACKEND_URL}/web_media/800/${sourceFilename}`;
+      const web1024Url = `${BACKEND_URL}/web_media/1024/${sourceFilename}`;
+      mediaContent = (
+          <div className="modal-image-viewer">
+              <div>
+                  <p>Medium (800px wide):</p>
+                  <img src={web800Url} alt={`${sourceFilename} - 800px`} />
+              </div>
+              <div>
+                  <p>Large (1024px wide):</p>
+                  <img src={web1024Url} alt={`${sourceFilename} - 1024px`} />
+              </div>
+          </div>
+      );
+  } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
+      const video480pUrl = `${BACKEND_URL}/web_media/videos_480p/${sourceFilename}`;
+      const thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
+      mediaContent = (
+          <div className="modal-video-viewer">
+              <video 
+                  controls 
+                  preload="metadata" 
+                  poster={thumbnailUrl} 
+                  style={{ maxWidth: '100%', maxHeight: '60vh' }} // Constrain video size in modal
+              >
+                  <source src={video480pUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+              </video>
+          </div>
+      );
+  } else {
+      mediaContent = <p>Preview not available for this media type.</p>;
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}> 
+      <div className="modal-content" onClick={e => e.stopPropagation()}> 
+        <button className="modal-close" onClick={onClose}>X</button>
+        <h2>{item.Author || 'Unknown'} - {sourceFilename}</h2>
+        <hr />
+        {mediaContent}
+        <hr />
+        <a href={originalUrl} className="download-link" download={sourceFilename}>
+          Download Original {item.MediaType === 'video' ? 'Video' : 'Image'}
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// Helper function outside component
+const getBaseFilename = (fullPath) => {
+  if (!fullPath) return '';
+  return fullPath.split('/').pop();
+};
+
+// Helper to get thumbnail filename (base + .jpg)
+const getThumbnailFilename = (fullPath) => {
+  const base = getBaseFilename(fullPath);
+  if (!base) return '';
+  const nameWithoutExt = base.substring(0, base.lastIndexOf('.')) || base;
+  return `${nameWithoutExt}.jpg`;
+};
+
 function App() {
   const [mediaItems, setMediaItems] = useState([]);
+  const [groupedMedia, setGroupedMedia] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null); // State for modal
 
   useEffect(() => {
     // Fetch data from the backend API
@@ -20,7 +96,19 @@ function App() {
         return response.json();
       })
       .then(data => {
-        setMediaItems(data);
+        setMediaItems(data); // Keep original list if needed
+        
+        // Group data by Author
+        const groups = data.reduce((acc, item) => {
+          const author = item.Author || 'Unknown Author';
+          if (!acc[author]) {
+            acc[author] = [];
+          }
+          acc[author].push(item);
+          return acc;
+        }, {});
+        setGroupedMedia(groups);
+        
         setLoading(false);
       })
       .catch(error => {
@@ -29,20 +117,6 @@ function App() {
         setLoading(false);
       });
   }, []); // Empty dependency array means this runs once on mount
-
-  // Helper function to get base filename
-  const getBaseFilename = (fullPath) => {
-      if (!fullPath) return '';
-      return fullPath.split('/').pop();
-  }
-
-  // Helper to get thumbnail filename (base + .jpg)
-  const getThumbnailFilename = (fullPath) => {
-      const base = getBaseFilename(fullPath);
-      if (!base) return '';
-      const nameWithoutExt = base.substring(0, base.lastIndexOf('.')) || base;
-      return `${nameWithoutExt}.jpg`;
-  }
 
   if (loading) {
     return <div className="container">Loading media data...</div>;
@@ -54,93 +128,48 @@ function App() {
 
   return (
     <div className="container">
-      <h1>Media Items</h1>
-      {mediaItems.length === 0 ? (
+      <h1>Media Gallery</h1>
+      {Object.keys(groupedMedia).length === 0 ? (
         <p>No media items found.</p>
       ) : (
-        mediaItems.map((item, index) => {
-          const sourceFilename = getBaseFilename(item.Filename);
-          const sourceUrl = `${BACKEND_URL}/${item.Filename}`; // Use full path from CSV
-          
-          return (
-            <div className="media-item" key={item.Filename || index}> 
-              <h2>Author: {item.Author || 'N/A'}</h2>
-              <p>Source File: {sourceFilename}</p>
-              <p>DateTime: {item.DateTime || 'N/A'}</p>
-              
-              {/* Conditional Rendering based on MediaType (case-insensitive) */}
-              {item.MediaType && item.MediaType.toLowerCase() === 'image' ? (
-                <>
-                  <p>Original Size: {item.full_size || 'N/A'}</p>
-                  <div className="image-container">
-                    {/* 400px Image */}
-                    <div>
-                      <p>400px Wide:</p>
-                      <div className="image-wrapper">
-                        <img src={`${BACKEND_URL}/web_media/400/${sourceFilename}`} alt={`${sourceFilename} - 400px wide`} style={{ maxWidth: '400px' }} />
-                        <p className="credit">Photo by: {item.Author || 'Unknown'}</p> 
-                      </div>
-                    </div>
-                    {/* 800px Image */}
-                     <div>
-                      <p>800px Wide:</p>
-                      <div className="image-wrapper">
-                        <img src={`${BACKEND_URL}/web_media/800/${sourceFilename}`} alt={`${sourceFilename} - 800px wide`} style={{ maxWidth: '800px' }} />
-                        <p className="credit">Photo by: {item.Author || 'Unknown'}</p> 
-                      </div>
-                    </div>
-                    {/* 1024px Image */}
-                    <div>
-                      <p>1024px Wide:</p>
-                      <div className="image-wrapper">
-                        <img src={`${BACKEND_URL}/web_media/1024/${sourceFilename}`} alt={`${sourceFilename} - 1024px wide`} style={{ maxWidth: '1024px' }} />
-                        <p className="credit">Photo by: {item.Author || 'Unknown'}</p> 
-                      </div>
-                    </div>
-                  </div>
-                  <a href={sourceUrl} className="download-link" download={sourceFilename}>
-                    Download Original ({item.full_size || 'N/A'})
-                  </a>
-                </>
-              ) : item.MediaType && item.MediaType.toLowerCase() === 'video' ? (
-                <>
-                  {/* Display Video Player */}
-                  <div className="video-container">
-                     {/* Construct URL for the 480p version */}
-                     {(() => {
-                         const sourceFilename = getBaseFilename(item.Filename);
-                         const video480pUrl = `${BACKEND_URL}/web_media/videos_480p/${sourceFilename}`;
-                         const thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
-                         const originalUrl = `${BACKEND_URL}/${item.Filename}`; // Keep original URL for download
+        Object.entries(groupedMedia).map(([author, items]) => (
+          <div key={author} className="author-group">
+            <h2>{author}</h2>
+            <div className="thumbnail-grid">
+              {items.map((item, index) => {
+                const sourceFilename = getBaseFilename(item.Filename);
+                let thumbnailUrl = '';
+                
+                if (item.MediaType && item.MediaType.toLowerCase() === 'image') {
+                    thumbnailUrl = `${BACKEND_URL}/web_media/400/${sourceFilename}`; // Use 400px as thumb
+                } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
+                    thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
+                } else {
+                     // Placeholder for unknown type - or skip
+                     return <div key={index} className="thumbnail-item error-thumb">?</div>;
+                }
 
-                         return (
-                            <>
-                                <video 
-                                    controls 
-                                    preload="metadata" 
-                                    poster={thumbnailUrl} 
-                                    style={{ maxWidth: '640px', width: '100%', height: 'auto', border:'1px solid #ddd' }} 
-                                >
-                                    {/* Point src to the 480p version */}
-                                    <source src={video480pUrl} type="video/mp4" />
-                                    Your browser does not support the video tag.
-                                </video>
-                                <p className="credit">Video by: {item.Author || 'Unknown'}</p>
-                                <a href={originalUrl} className="download-link" download={sourceFilename}>
-                                     Download Original Video
-                                 </a>
-                            </>
-                         );
-                     })()} 
+                return (
+                  <div 
+                    key={item.Filename || index} 
+                    className="thumbnail-item" 
+                    onClick={() => setSelectedItem(item)} // Set selected item on click
+                    title={`Filename: ${sourceFilename}\nDateTime: ${item.DateTime || 'N/A'}`} // Tooltip
+                  >
+                    <img src={thumbnailUrl} alt={sourceFilename} loading="lazy" />
+                    {/* Optional: Add credit overlay on thumbnail? */}
+                     {/* <span className="thumb-credit">{item.Author}</span> */}
                   </div>
-                </>
-              ) : (
-                 <p>Unknown media type: {item.MediaType}</p> 
-              )}
+                );
+              })}
             </div>
-          );
-        })
+          </div>
+        ))
       )}
+      
+      {/* Render Modal when an item is selected */}
+      <MediaModal item={selectedItem} onClose={() => setSelectedItem(null)} />
+      
     </div>
   );
 }
