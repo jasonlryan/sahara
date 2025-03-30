@@ -9,27 +9,19 @@ function MediaModal({ item, onClose }) {
   if (!item) return null;
 
   const sourceFilename = getBaseFilename(item.Filename);
-  const originalUrl = `${BACKEND_URL}/${item.Filename}`;
+  const originalUrl = item.URL; // Use the GitHub raw URL
 
   // Determine content based on media type
   let mediaContent;
   if (item.MediaType && item.MediaType.toLowerCase() === 'image') {
-      const web800Url = `${BACKEND_URL}/web_media/800/${sourceFilename}`;
-      const web1024Url = `${BACKEND_URL}/web_media/1024/${sourceFilename}`;
       mediaContent = (
           <div className="modal-image-viewer">
               <div>
-                  <p>Medium (800px wide):</p>
-                  <img src={web800Url} alt={`${sourceFilename} - 800px`} />
-              </div>
-              <div>
-                  <p>Large (1024px wide):</p>
-                  <img src={web1024Url} alt={`${sourceFilename} - 1024px`} />
+                  <img src={item.URL} alt={sourceFilename} style={{ maxWidth: '100%', height: 'auto' }} />
               </div>
           </div>
       );
   } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
-      const video480pUrl = `${BACKEND_URL}/web_media/videos_480p/${sourceFilename}`;
       const thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
       mediaContent = (
           <div className="modal-video-viewer">
@@ -37,9 +29,11 @@ function MediaModal({ item, onClose }) {
                   controls 
                   preload="metadata" 
                   poster={thumbnailUrl} 
-                  style={{ maxWidth: '100%', maxHeight: '60vh' }} // Constrain video size in modal
+                  style={{ maxWidth: '100%', maxHeight: '60vh' }}
+                  playsInline
+                  webkit-playsinline="true"
               >
-                  <source src={video480pUrl} type="video/mp4" />
+                  <source src={item.URL} type="video/mp4" />
                   Your browser does not support the video tag.
               </video>
           </div>
@@ -311,10 +305,10 @@ function App() {
                 let thumbnailUrl = '';
                 
                 if (item.MediaType && item.MediaType.toLowerCase() === 'image') {
-                    thumbnailUrl = `${BACKEND_URL}/web_media/400/${sourceFilename}`; // Use 400px as thumb
+                    thumbnailUrl = item.URL; // Use the GitHub raw URL
                 } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
                     thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
-                    const video480pUrl = `${BACKEND_URL}/web_media/videos_480p/${sourceFilename}`;
+                    const video480pUrl = item.URL; // Use the GitHub raw URL
                     return (
                       <div
                         key={item.Filename || index}
