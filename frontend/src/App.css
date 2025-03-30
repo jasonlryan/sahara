@@ -6,22 +6,36 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f4f4f4;
+  background-color: #f0f0f0; /* Or whatever the desired default main body background is */
+  color: #586e75; /* Slightly muted dark text */
 }
 
 .container {
-  max-width: 1200px;
-  margin: 20px auto;
+  /* max-width: 1200px; */
+  /* Remove or increase this */
+  margin: 0 auto;
   padding: 20px;
-  background-color: #fff;
+  background-color: transparent;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Soft shadow */
+  border: 1px solid #eee8d5; /* Subtle border */
 }
 
 h1 {
-  color: #333;
-  text-align: center;
-  margin-bottom: 30px;
+  /* text-align: center; */ /* Changed to left */
+  text-align: left;
+  margin-bottom: 20px;
+  color: white; /* Set text color to white */
+  /* background-color: #87CEEB; */ /* Sky blue background - Changed */
+  background-color: #3979BC; /* New blue color */
+  /* padding: 20px 10px; */ /* Adjust padding for left alignment */
+  padding: 20px;
+  border-radius: 5px; /* Optional: slightly rounded corners */
+  /* Remove potential margin inheritance issues */
+  margin-top: 0;
+  /* Remove negative margins as they might interfere with left padding */
+  /* margin-left: -10px; */ 
+  /* margin-right: -10px; */ 
 }
 
 .media-item {
@@ -33,7 +47,7 @@ h1 {
   align-items: flex-start;
   background-color: #fff;
   border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .media-item h2 {
@@ -44,93 +58,105 @@ h1 {
 }
 
 .media-item p {
-    margin: 4px 0;
-    font-size: 0.95em;
-    color: #444;
+  margin: 4px 0;
+  font-size: 0.95em;
+  color: #444;
 }
 
 .image-container {
   display: flex;
-  align-items: flex-start; /* Align items to the top */
-  gap: 25px; 
+  align-items: flex-start;
+  /* Align items to the top */
+  gap: 25px;
   margin-top: 15px;
   margin-bottom: 15px;
-  flex-wrap: wrap; /* Allow wrapping on smaller screens */
-  width: 100%; /* Take full width */
+  flex-wrap: wrap;
+  /* Allow wrapping on smaller screens */
+  width: 100%;
+  /* Take full width */
 }
 
 .image-container div {
-  text-align: center; 
-  flex: 1; /* Allow flex items to grow/shrink */
-  min-width: 150px; /* Minimum width before wrapping */
+  text-align: center;
+  flex: 1;
+  /* Allow flex items to grow/shrink */
+  min-width: 150px;
+  /* Minimum width before wrapping */
 }
 
 .image-container div p {
-    font-weight: bold;
-    margin-bottom: 8px;
-    font-size: 0.9em;
+  font-weight: bold;
+  margin-bottom: 8px;
+  font-size: 0.9em;
 }
 
 .image-container img {
-  max-width: 100%; /* Ensure images are responsive within their container */
+  max-width: 100%;
+  /* Ensure images are responsive within their container */
   height: auto;
   border: 1px solid #ddd;
   border-radius: 4px;
-  background-color: #f9f9f9; /* Light background for images */
+  background-color: #f9f9f9;
+  /* Light background for images */
 }
 
 /* Style for the image + credit wrapper */
 .image-wrapper {
-  display: inline-block; /* Fit content width */
-  position: relative; /* For potential future absolute positioning if needed */
-  max-width: 100%; /* Ensure it doesn't overflow its container */
+  display: inline-block;
+  /* Fit content width */
+  position: relative;
+  /* For potential future absolute positioning if needed */
+  max-width: 100%;
+  /* Ensure it doesn't overflow its container */
 }
 
 /* Update credit selector and styles */
 .image-wrapper p.credit {
-  font-size: 0.75em; 
-  color: #aaaaaa; 
+  font-size: 0.75em;
+  color: #aaaaaa;
   text-align: right;
-  margin-top: 2px; 
-  margin-bottom: 0; 
+  margin-top: 2px;
+  margin-bottom: 0;
 }
 
 .download-link {
   display: inline-block;
   padding: 10px 18px;
-  background-color: #007bff;
+  background-color: #2aa198; /* Muted turquoise */
   color: white;
   text-decoration: none;
   border-radius: 5px;
   font-size: 1em;
   transition: background-color 0.2s ease;
-  margin-top: 10px; /* Add space above download button */
+  margin-top: 10px;
+  /* Add space above download button */
 }
 
 .download-link:hover {
-  background-color: #0056b3;
+  background-color: #208078; /* Darker turquoise */
 }
 
 .error {
-    color: #d9534f; /* Bootstrap danger color */
-    background-color: #f2dede;
-    border: 1px solid #ebccd1;
-    padding: 15px;
-    border-radius: 4px;
-    text-align: center;
+  color: #dc322f; /* Red */
+  background-color: #fdf6e3;
+  border: 1px solid #dc322f;
+  padding: 15px;
+  border-radius: 4px;
+  text-align: center;
 }
 
 /* Optional: Basic responsiveness */
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
     .image-container {
-        flex-direction: column; /* Stack images vertically */
-        align-items: center; /* Center items when stacked */
+        flex-direction: column; 
+        align-items: center; 
     }
      .image-container div {
-        width: 80%; /* Give images more width on small screens */
+        width: 80%; 
         margin-bottom: 20px;
     }
-}
+} */
+/* Remove this unused block */
 
 /* New Styles for Gallery Layout */
 .author-group {
@@ -141,52 +167,61 @@ h1 {
 
 .author-group h2 {
   font-size: 1.6em;
-  color: #444;
+  color: #859900; /* Muted olive/green */
   margin-bottom: 20px;
-  border-bottom: 2px solid #007bff;
+  border-bottom: 2px solid #d3af86; /* Sandy brown border */
   padding-bottom: 5px;
   display: inline-block;
 }
 
 .thumbnail-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Responsive grid */
+  /* grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); */
+  /* Responsive grid */
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  /* Increased min size */
   gap: 15px;
 }
 
 .thumbnail-item {
-  border: 1px solid #ddd;
+  border: 1px solid #eee8d5; /* Light border */
   border-radius: 4px;
-  overflow: hidden; /* Ensures image respects border radius */
+  overflow: hidden;
+  /* Ensures image respects border radius */
   cursor: pointer;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  aspect-ratio: 1 / 1; /* Maintain square aspect ratio */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #f0f0f0; /* Placeholder background */
+  /* aspect-ratio: 1 / 1; */
+  /* Remove square aspect ratio */
+  /* display: flex; */
+  /* Removed flex */
+  background-color: #fdf6e3; /* Light background */
 }
 
 .thumbnail-item:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .thumbnail-item img {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover; /* Cover the area, cropping if necessary */
+  /* height: 100%; */
+  /* Remove fixed height */
+  height: auto;
+  /* Let height adjust based on width and aspect ratio */
+  /* object-fit: cover; */
+  /* Remove cropping */
 }
 
 .thumbnail-item.error-thumb {
-    color: #ccc;
-    font-size: 2em;
-    cursor: default;
+  color: #ccc;
+  font-size: 2em;
+  cursor: default;
 }
+
 .thumbnail-item.error-thumb:hover {
-    transform: none;
-    box-shadow: none;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Basic Modal Styles */
@@ -204,25 +239,29 @@ h1 {
 }
 
 .modal-content {
-  background-color: white;
+  background-color: #fffbf0; /* Match container background */
   padding: 30px;
   border-radius: 8px;
   max-width: 90vw;
   max-height: 90vh;
   overflow: auto;
   position: relative;
+  color: #586e75; /* Default text color */
+  border: 1px solid #eee8d5;
 }
 
 .modal-close {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: #eee;
+  background: #eee8d5; /* Sandy color for close button */
+  color: #cb4b16; /* Orange cross */
   border: none;
   border-radius: 50%;
   width: 30px;
   height: 30px;
   font-size: 1.2em;
+  font-weight: bold;
   cursor: pointer;
   line-height: 30px;
   text-align: center;
@@ -230,30 +269,34 @@ h1 {
 
 /* Styles for Modal Content */
 .modal-image-viewer {
-    display: flex;
-    flex-direction: column; /* Stack medium and large previews */
-    align-items: center; /* Center previews */
-    gap: 20px; /* Space between previews */
-    margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  /* Stack medium and large previews */
+  align-items: center;
+  /* Center previews */
+  gap: 20px;
+  /* Space between previews */
+  margin: 20px 0;
 }
 
 .modal-image-viewer img {
-    max-width: 100%;
-    height: auto;
-    border: 1px solid #eee;
-    border-radius: 4px;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid #eee8d5; /* Light border */
+  border-radius: 4px;
 }
 
 .modal-image-viewer p {
-    text-align: center;
-    font-weight: bold;
-    margin-bottom: 5px;
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #859900; /* Olive */
 }
 
 .modal-video-viewer {
-     margin: 20px 0;
-     display: flex;
-     justify-content: center;
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
 }
 
 /* Remove old specific styles if they conflict */
@@ -261,10 +304,115 @@ h1 {
 
 /* Keep error style */
 .error {
-    color: #d9534f; /* Bootstrap danger color */
-    background-color: #f2dede;
-    border: 1px solid #ebccd1;
-    padding: 15px;
-    border-radius: 4px;
-    text-align: center;
+  color: #dc322f; /* Red */
+  background-color: #fdf6e3;
+  border: 1px solid #dc322f;
+  padding: 15px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* Add specific media query for smaller screens */
+@media (max-width: 600px) {
+  .container {
+    padding: 10px;
+    /* Reduce padding on small screens */
+  }
+
+  .thumbnail-grid {
+    gap: 8px;
+    /* Reduce gap between thumbnails */
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    /* Optionally, smaller min on very small screens */
+  }
+
+  .author-group h2 {
+    font-size: 1.3em;
+    color: #859900; /* Olive */
+    /* Slightly smaller headings */
+  }
+}
+
+/* Add styles for filter controls */
+.filter-controls {
+  background-color: #eee8d5; /* Sandy brown background */
+  padding: 15px 20px;
+  margin-bottom: 25px;
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  gap: 20px; /* Space between filter groups */
+  align-items: center;
+  border: 1px solid #d3af86; /* Slightly darker border */
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Space between label and control */
+}
+
+.filter-controls label {
+  font-weight: bold;
+  color: #657b83; /* Darker muted text */
+  margin-right: 4px;
+}
+
+/* Style filter buttons */
+.filter-controls button {
+  /* Add appearance none to reduce browser default styles */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: #fdf6e3; /* Light background */
+  color: #657b83; /* Dark text */
+  border: 1px solid #d3af86; /* Sandy border */
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  font-family: inherit; /* Ensure button font matches */
+  font-size: 0.95em; /* Match select font size */
+}
+
+.filter-controls button:hover {
+  background-color: #fffbf0; /* Lighter hover */
+  border-color: #cb4b16; /* Orange border on hover */
+  color: #cb4b16; /* Orange text on hover */
+}
+
+/* Style for the currently active type button - Increased Specificity */
+.filter-controls .filter-group button.active {
+  background-color: #cb4b16; /* Burnt orange */
+  border-color: #a53c11; /* Darker orange */
+  color: #fdf6e3; /* Light text */
+  cursor: default; 
+  outline: none !important; /* Force remove focus outline */
+  box-shadow: none !important; /* Force remove focus shadow */
+}
+
+/* Style filter dropdowns */
+.filter-controls select {
+  /* Add appearance none to reduce browser default styles */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 7px 25px 7px 10px; /* Add space for custom arrow */
+  border-radius: 5px;
+  background-color: #fdf6e3; /* Light background */
+  color: #586e75; /* Dark text */
+  border: 1px solid #d3af86; /* Sandy border */
+  font-family: inherit;
+  font-size: 0.95em;
+  cursor: pointer;
+  /* Add custom dropdown arrow */
+  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23cb4b16%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+  background-repeat: no-repeat;
+  background-position: right 10px top 50%;
+  background-size: .65em auto;
+}
+
+.filter-controls select:focus {
+  outline: 2px solid #cb4b16; /* Orange outline */
+  border-color: transparent;
 }
