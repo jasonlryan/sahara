@@ -272,7 +272,7 @@ function MediaModal({ item, onClose }) {
         )}
         
         {mediaContent}
-        <div className="modal-author">{currentItem.Author || 'Unknown'}</div>
+        <div className="modal-author">Photo by: {currentItem.Author || 'Unknown'}</div>
         
         <a href={originalUrl} className="download-link" download={sourceFilename}>
           Download Original {currentItem.MediaType === 'video' ? 'Video' : 'Image'}
@@ -493,13 +493,13 @@ function App() {
 
             {/* Author Filter Dropdown (Remains the same) */}
             <div className="filter-group">
-              <label htmlFor="author-select">Author:</label>
+              <label htmlFor="author-select">Photo by:</label>
               <select 
                 id="author-select" 
                 value={selectedAuthor} 
                 onChange={handleAuthorChange}
               >
-                <option value="All">All Authors</option>
+                <option value="All">All Photos</option>
                 {authors.map(author => (
                   <option key={author} value={author}>{author}</option>
                 ))}
