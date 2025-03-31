@@ -137,18 +137,14 @@ function MediaModal({ item, onClose }) {
           </div>
       );
   } else if (currentItem.MediaType && currentItem.MediaType.toLowerCase() === 'video') {
-      // Use paths that work in both environments
       const thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(currentItem.Filename)}`;
       const videoUrl = `${BACKEND_URL}/web_media/videos_480p/${getBaseFilename(currentItem.Filename)}`;
-      
-      console.log("Modal video paths:", { thumbnailUrl, videoUrl });
       
       mediaContent = (
           <div className="modal-video-viewer">
               <video 
                   controls 
-                  preload="metadata" 
-                  poster={thumbnailUrl} 
+                  autoPlay
                   playsInline
                   webkit-playsinline="true"
                   x-webkit-airplay="allow"
@@ -156,6 +152,7 @@ function MediaModal({ item, onClose }) {
                   disableRemotePlayback
                   width="100%"
                   height="auto"
+                  style={{ opacity: 1 }}
               >
                   <source src={videoUrl} type="video/mp4" />
                   Your browser does not support the video tag.
@@ -553,34 +550,17 @@ function App() {
                     thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
                     const videoUrl = `${BACKEND_URL}/web_media/videos_480p/${getBaseFilename(item.Filename)}`;
                     
-                    // Preload the thumbnail image for better mobile display
-                    const preloadImg = new Image();
-                    preloadImg.src = thumbnailUrl;
-                    
-                    console.log("Grid video paths:", { thumbnailUrl, videoUrl });
-                    
                     return (
                       <div
                         key={item.Filename || index}
                         className="thumbnail-item"
+                        onClick={() => setSelectedItem(item)}
                         title={`Filename: ${sourceFilename}\nAuthor: ${item.Author || 'Unknown'}\nDay: ${item.filter_day || 'N/A'}`}
                       >
-                        <video 
-                            controls
-                            preload="metadata"
-                            poster={thumbnailUrl}
-                            onClick={(e) => e.stopPropagation()}
-                            playsInline
-                            webkit-playsinline="true"
-                            x-webkit-airplay="allow"
-                            disablePictureInPicture
-                            disableRemotePlayback
-                            width="100%"
-                            height="auto"
-                        >
-                            <source src={videoUrl} type="video/mp4" />
-                            Your browser does not support the video tag.
-                        </video>
+                        <div className="video-thumbnail-container">
+                            <img src={thumbnailUrl} alt={`Thumbnail for ${sourceFilename}`} />
+                            <div className="play-button-overlay"></div>
+                        </div>
                       </div>
                     );
                 } else {
