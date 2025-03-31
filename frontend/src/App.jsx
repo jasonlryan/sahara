@@ -137,8 +137,13 @@ function MediaModal({ item, onClose }) {
           </div>
       );
   } else if (currentItem.MediaType && currentItem.MediaType.toLowerCase() === 'video') {
-      const thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(currentItem.Filename)}`;
-      const videoUrl = `${BACKEND_URL}/web_media/videos_480p/${getBaseFilename(currentItem.Filename)}`;
+      // Use GitHub raw URLs in production, local URLs in development
+      const thumbnailUrl = LOCAL_DEV 
+          ? `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(currentItem.Filename)}`
+          : `https://raw.githubusercontent.com/jasonlryan/sahara/main/web_media/thumbnails/${getThumbnailFilename(currentItem.Filename)}`;
+      const videoUrl = LOCAL_DEV
+          ? `${BACKEND_URL}/web_media/videos_480p/${getBaseFilename(currentItem.Filename)}`
+          : `https://raw.githubusercontent.com/jasonlryan/sahara/main/web_media/videos_480p/${getBaseFilename(currentItem.Filename)}`;
       
       mediaContent = (
           <div className="modal-video-viewer">
@@ -546,9 +551,13 @@ function App() {
                 if (item.MediaType && item.MediaType.toLowerCase() === 'image') {
                     thumbnailUrl = item.URL.replace('/sahara/media/', '/sahara/main/media/');
                 } else if (item.MediaType && item.MediaType.toLowerCase() === 'video') {
-                    // Use paths that work in both environments
-                    thumbnailUrl = `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
-                    const videoUrl = `${BACKEND_URL}/web_media/videos_480p/${getBaseFilename(item.Filename)}`;
+                    // Use GitHub raw URLs in production, local URLs in development
+                    thumbnailUrl = LOCAL_DEV 
+                        ? `${BACKEND_URL}/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`
+                        : `https://raw.githubusercontent.com/jasonlryan/sahara/main/web_media/thumbnails/${getThumbnailFilename(item.Filename)}`;
+                    const videoUrl = LOCAL_DEV
+                        ? `${BACKEND_URL}/web_media/videos_480p/${getBaseFilename(item.Filename)}`
+                        : `https://raw.githubusercontent.com/jasonlryan/sahara/main/web_media/videos_480p/${getBaseFilename(item.Filename)}`;
                     
                     return (
                       <div
