@@ -22,20 +22,33 @@ body {
 }
 
 h1 {
-  /* text-align: center; */ /* Changed to left */
   text-align: left;
   margin-bottom: 20px;
-  color: white; /* Set text color to white */
-  /* background-color: #87CEEB; */ /* Sky blue background - Changed */
-  background-color: #3979BC; /* New blue color */
-  /* padding: 20px 10px; */ /* Adjust padding for left alignment */
-  padding: 20px;
-  border-radius: 5px; /* Optional: slightly rounded corners */
-  /* Remove potential margin inheritance issues */
+  color: white;
+  background-color: transparent;
+  background-image: url('https://raw.githubusercontent.com/jasonlryan/sahara/main/media/Jonny.WhatsApp%20Image%202025-03-28%20at%2019.54.36%20%282%29.jpeg');
+  background-size: cover;
+  background-position: center;
+  padding: 40px 20px;
+  border-radius: 8px;
   margin-top: 0;
-  /* Remove negative margins as they might interfere with left padding */
-  /* margin-left: -10px; */ 
-  /* margin-right: -10px; */ 
+  position: relative;
+  overflow: hidden;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  z-index: 1; /* Ensure text is above the overlay */
+}
+
+/* Add a subtle gradient overlay to ensure text readability */
+h1::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(57, 121, 188, 0.2), rgba(57, 121, 188, 0.4));
+  pointer-events: none;
+  z-index: 0; /* Place overlay behind the text */
 }
 
 .media-item {
@@ -389,12 +402,12 @@ h1 {
 /* Add styles for filter controls */
 .filter-controls {
   background-color: #eee8d5; /* Sandy brown background */
-  padding: 15px 20px;
-  margin-bottom: 25px;
+  padding: 8px 12px; /* Reduced padding */
+  margin-bottom: 20px;
   border-radius: 8px;
   display: flex;
   flex-wrap: wrap; /* Allow wrapping on smaller screens */
-  gap: 20px; /* Space between filter groups */
+  gap: 15px; /* Reduced gap between filter groups */
   align-items: center;
   border: 1px solid #d3af86; /* Slightly darker border */
 }
@@ -402,13 +415,14 @@ h1 {
 .filter-group {
   display: flex;
   align-items: center;
-  gap: 8px; /* Space between label and control */
+  gap: 4px; /* Reduced space between label and control */
 }
 
 .filter-controls label {
   font-weight: bold;
   color: #657b83; /* Darker muted text */
-  margin-right: 4px;
+  margin-right: 2px; /* Reduced margin */
+  font-size: 0.9em; /* Slightly smaller font size */
 }
 
 /* Style filter buttons */
@@ -446,22 +460,18 @@ h1 {
 
 /* Style filter dropdowns */
 .filter-controls select {
-  /* Add appearance none to reduce browser default styles */
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  padding: 7px 25px 7px 10px; /* Add space for custom arrow */
-  border-radius: 5px;
-  background-color: #fdf6e3; /* Light background */
-  color: #586e75; /* Dark text */
-  border: 1px solid #d3af86; /* Sandy border */
+  padding: 4px 20px 4px 8px; /* Reduced padding */
+  border-radius: 4px;
+  background-color: #fdf6e3;
+  color: #586e75;
+  border: 1px solid #d3af86;
   font-family: inherit;
-  font-size: 0.95em;
+  font-size: 0.9em;
   cursor: pointer;
-  /* Add custom dropdown arrow */
+  /* Keep the custom dropdown arrow */
   background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23cb4b16%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
   background-repeat: no-repeat;
-  background-position: right 10px top 50%;
+  background-position: right 8px top 50%;
   background-size: .65em auto;
 }
 
@@ -592,11 +602,11 @@ h1 {
 
 /* Author name beneath modal content */
 .modal-author {
-  font-size: 1.1em;
-  color: #586e75;
+  font-size: 0.9em;
+  color: #3979BC; /* Same blue as header */
   margin: 12px 0;
   text-align: left;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 /* Restore swipe direction indicators */
