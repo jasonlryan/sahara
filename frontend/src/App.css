@@ -29,29 +29,24 @@ h1 {
   background-image: url('https://raw.githubusercontent.com/jasonlryan/sahara/main/media/Jonny.WhatsApp%20Image%202025-03-28%20at%2019.54.36%20%282%29.jpeg');
   background-size: cover;
   background-position: center;
-  padding: 60px 20px 20px 20px; /* Increased top padding to push content down */
+  padding: 20px;
   border-radius: 8px;
   margin-top: 0;
   position: relative;
   overflow: hidden;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
   z-index: 1;
-  font-size: 2.4em; /* Reduced from 3.2em */
+  font-size: 2.5em;
+  font-weight: 600;
+  letter-spacing: 0.5px;
   display: flex;
-  align-items: flex-end; /* Align title to bottom */
+  align-items: flex-end;
+  min-height: 120px;
 }
 
-/* Add a subtle gradient overlay to ensure text readability */
+/* Remove the color overlay */
 h1::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(to bottom, rgba(57, 121, 188, 0.1), rgba(57, 121, 188, 0.2)); /* Reduced blue opacity */
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
 
 .media-item {
@@ -176,41 +171,90 @@ h1::before {
 
 /* New Styles for Gallery Layout */
 .author-group {
-  margin-bottom: 40px;
-  padding-bottom: 20px;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
   border-bottom: 1px solid #eee;
 }
 
 .author-group h2 {
-  font-size: 1.6em;
-  color: #859900; /* Muted olive/green */
-  margin-bottom: 20px;
-  border-bottom: 2px solid #d3af86; /* Sandy brown border */
-  padding-bottom: 5px;
+  font-size: 1.3em;
+  color: #859900;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #d3af86;
+  padding-bottom: 3px;
   display: inline-block;
 }
 
 .thumbnail-grid {
   display: grid;
-  /* grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); */
-  /* Responsive grid */
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  /* Increased min size */
-  gap: 15px;
+  gap: 12px;
 }
 
 .thumbnail-item {
-  border: 1px solid #eee8d5; /* Light border */
+  border: 1px solid #eee8d5;
   border-radius: 4px;
   overflow: hidden;
-  /* Ensures image respects border radius */
   cursor: pointer;
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-  /* aspect-ratio: 1 / 1; */
-  /* Remove square aspect ratio */
-  /* display: flex; */
-  /* Removed flex */
-  background-color: #fdf6e3; /* Light background */
+  background-color: #fdf6e3;
+  position: relative;
+}
+
+.video-thumbnail-container {
+  position: relative;
+  width: 100%;
+  background-color: #000;
+}
+
+.video-thumbnail-container img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.play-button-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 45px;
+  height: 45px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.play-button-overlay::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 10px 0 10px 16px;
+  border-color: transparent transparent transparent rgba(255, 255, 255, 0.9);
+  margin-left: 3px;
+}
+
+.video-thumbnail-container:hover .play-button-overlay {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.modal-video-viewer {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: #000;
+}
+
+.modal-video-viewer video {
+  max-width: 100%;
+  height: auto;
+  display: block;
 }
 
 .thumbnail-item:hover {
@@ -229,14 +273,6 @@ h1::before {
 /* Video-specific thumbnail styles */
 .thumbnail-item video {
   min-height: 150px; /* Ensure videos have a minimum height */
-}
-
-.modal-video-viewer video {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  object-fit: contain;
-  background-color: #000; /* Dark background for videos */
 }
 
 /* Make video controls always visible on mobile */
@@ -358,14 +394,6 @@ h1::before {
   font-weight: bold;
   margin-bottom: 5px;
   color: #859900; /* Olive */
-}
-
-.modal-video-viewer {
-  margin: 0; /* Remove top margin since there's no header */
-  display: flex;
-  justify-content: center;
-  border-radius: 4px;
-  overflow: hidden;
 }
 
 /* Remove old specific styles if they conflict */
