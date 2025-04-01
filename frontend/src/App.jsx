@@ -373,29 +373,64 @@ function App() {
         return response.json();
       })
       .then(data => {
-        console.log("Fetched data (should include filter_day):", data);
+        console.log("Fetched data:", data);
 
-        // Assuming backend now sends data with the 'filter_day' column
-        // If not, the backend API route needs to be updated to read and send it.
+        // Track duplicates with a Map using normalized filename as key
+        const duplicatesMap = new Map();
         
-        // No need to process dates here anymore if 'filter_day' is provided
-        // const processedData = data.map(item => ...)
+        // First pass: group by normalized filename (removing dates and numbers)
+        data.forEach(item => {
+          // Remove dates, times, and numbers in parentheses from filename
+          const normalizedName = item.Filename
+            .replace(/\d{4}-\d{2}-\d{2}/g, '') // Remove dates
+            .replace(/\s+at\s+\d{2}\.\d{2}\.\d{2}/g, '') // Remove times
+            .replace(/\s*\(\d+\)/g, '') // Remove numbers in parentheses
+            .replace(/\s+/g, ' ') // Normalize spaces
+            .trim();
+            
+          if (!duplicatesMap.has(normalizedName)) {
+            duplicatesMap.set(normalizedName, []);
+          }
+          duplicatesMap.get(normalizedName).push(item);
+        });
+        
+        // Second pass: mark items that have duplicates
+        const processedData = data.map(item => {
+          const normalizedName = item.Filename
+            .replace(/\d{4}-\d{2}-\d{2}/g, '')
+            .replace(/\s+at\s+\d{2}\.\d{2}\.\d{2}/g, '')
+            .replace(/\s*\(\d+\)/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+            
+          const duplicates = duplicatesMap.get(normalizedName);
+          const isDuplicate = duplicates.length > 1;
+          
+          if (isDuplicate) {
+            console.log(`Found duplicate for ${item.Filename}:`, 
+              duplicates.map(d => d.Filename).filter(f => f !== item.Filename)
+            );
+          }
+          
+          return {
+            ...item,
+            hasDuplicate: isDuplicate,
+            duplicateGroup: normalizedName
+          };
+        });
 
+        setMediaItems(processedData);
+        
         // Extract unique authors and day names for filters
-        // Use Set to get unique values, filter out null/empty strings, then sort.
-        const uniqueAuthors = [...new Set(data.map(item => item.Author || 'Unknown Author'))].sort();
-        const uniqueDays = [...new Set(data.map(item => item.filter_day).filter(day => day))];
+        const uniqueAuthors = [...new Set(processedData.map(item => item.Author || 'Unknown Author'))].sort();
+        const uniqueDays = [...new Set(processedData.map(item => item.filter_day).filter(day => day))];
         
         // Optional: Sort days logically (Sunday, Monday, ...) instead of alphabetically
         const dayOrder = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         uniqueDays.sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b));
 
-        console.log("Unique Authors:", uniqueAuthors);
-        console.log("Unique Days of Week:", uniqueDays);
-
-        setMediaItems(data); // Store raw data as fetched (assuming it has filter_day)
         setAuthors(uniqueAuthors);
-        setDayOfWeekOptions(uniqueDays); // Set day options state
+        setDayOfWeekOptions(uniqueDays);
         setLoading(false);
       })
       .catch(error => {
@@ -403,7 +438,7 @@ function App() {
         setError(`Failed to load media data: ${error.message}`);
         setLoading(false);
         setAuthors([]);
-        setDayOfWeekOptions([]); // Reset options on error
+        setDayOfWeekOptions([]);
       });
   }, []);
 
@@ -569,6 +604,7 @@ function App() {
                         <div className="video-thumbnail-container">
                             <img src={thumbnailUrl} alt={`Thumbnail for ${sourceFilename}`} />
                             <div className="play-button-overlay"></div>
+                            {/* {item.hasDuplicate && <div className="duplicate-indicator">⊕</div>} */}
                         </div>
                       </div>
                     );
@@ -587,6 +623,7 @@ function App() {
                     title={tooltipText}
                   >
                     <img src={thumbnailUrl} alt={sourceFilename} loading="lazy" />
+                    {/* {item.hasDuplicate && <div className="duplicate-indicator">⊕</div>} */}
                   </div>
                 );
               })}
