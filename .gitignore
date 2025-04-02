@@ -38,4 +38,7 @@ Thumbs.db
 
 # Build output
 dist/
-build/ 
+build/
+
+# Credentials
+google_creds.json 
